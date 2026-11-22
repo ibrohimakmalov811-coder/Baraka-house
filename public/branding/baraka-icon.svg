@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%" fill="none">
+  <defs>
+    <linearGradient id="iconBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B1728"/>
+      <stop offset="100%" stop-color="#07111F"/>
+    </linearGradient>
+
+    <linearGradient id="iconBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D2FF"/>
+      <stop offset="50%" stop-color="#0066FF"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+
+    <linearGradient id="iconPurpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="60%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#9333EA"/>
+    </linearGradient>
+
+    <linearGradient id="iconLeafGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F2FE"/>
+      <stop offset="50%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+  </defs>
+
+  <!-- App Icon Background -->
+  <rect width="256" height="256" rx="56" fill="url(#iconBgGrad)" />
+  <rect x="1" y="1" width="254" height="254" rx="55" stroke="rgba(255,255,255,0.12)" stroke-width="2" />
+
+  <!-- Symbol centered -->
+  <g transform="translate(38, 38) scale(0.9)">
+    <path d="M 46 28 L 108 28 C 142 28 164 44 164 74 C 164 96 148 112 124 116 L 46 116 Z" fill="url(#iconBlueGrad)" />
+    <path d="M 46 94 L 118 94 C 152 94 176 112 176 142 C 176 172 148 188 106 188 L 46 188 Z" fill="url(#iconPurpleGrad)" />
+    <path d="M 50 114 L 105 76 L 142 102 C 140 134 126 150 96 150 L 50 150 Z" fill="#0B1728" />
+    <rect x="94" y="104" width="10" height="10" rx="2" fill="#22D3EE" />
+    <rect x="108" y="104" width="10" height="10" rx="2" fill="#22D3EE" />
+    <rect x="94" y="118" width="10" height="10" rx="2" fill="#22D3EE" />
+    <rect x="108" y="118" width="10" height="10" rx="2" fill="#22D3EE" />
+    <path d="M 28 184 C 24 140 40 102 78 88 C 66 118 64 154 28 184 Z" fill="url(#iconLeafGrad)" />
+    <path d="M 40 178 C 42 150 56 122 84 108 C 76 132 72 158 40 178 Z" fill="#00F2FE" opacity="0.85" />
+  </g>
+</svg>

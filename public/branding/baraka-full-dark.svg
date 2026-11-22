@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 140" width="100%" height="100%" fill="none">
+  <defs>
+    <linearGradient id="fullBlueCyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D2FF"/>
+      <stop offset="50%" stop-color="#0066FF"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+
+    <linearGradient id="fullPurpleLoopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="60%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#9333EA"/>
+    </linearGradient>
+
+    <linearGradient id="fullLeafGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F2FE"/>
+      <stop offset="50%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Symbol scaled and placed on left (x: 10, y: 15, size: 110) -->
+  <g transform="translate(10, 15) scale(0.55)">
+    <path d="M 46 28 L 108 28 C 142 28 164 44 164 74 C 164 96 148 112 124 116 L 46 116 Z" fill="url(#fullBlueCyanGrad)" />
+    <path d="M 46 94 L 118 94 C 152 94 176 112 176 142 C 176 172 148 188 106 188 L 46 188 Z" fill="url(#fullPurpleLoopGrad)" />
+    <path d="M 50 114 L 105 76 L 142 102 C 140 134 126 150 96 150 L 50 150 Z" fill="#07111F" />
+    <rect x="94" y="104" width="10" height="10" rx="2" fill="#22D3EE" />
+    <rect x="108" y="104" width="10" height="10" rx="2" fill="#22D3EE" />
+    <rect x="94" y="118" width="10" height="10" rx="2" fill="#22D3EE" />
+    <rect x="108" y="118" width="10" height="10" rx="2" fill="#22D3EE" />
+    <path d="M 28 184 C 24 140 40 102 78 88 C 66 118 64 154 28 184 Z" fill="url(#fullLeafGrad)" />
+    <path d="M 40 178 C 42 150 56 122 84 108 C 76 132 72 158 40 178 Z" fill="#00F2FE" opacity="0.8" />
+  </g>
+
+  <!-- Wordmark -->
+  <g transform="translate(140, 20)">
+    <g fill="#F8FAFC">
+      <!-- B -->
+      <path d="M 10 18 L 32 18 C 40 18 46 22 46 29 C 46 34 43 38 38 39 C 45 41 49 45 49 52 C 49 59 42 64 32 64 L 10 64 Z M 18 25 L 18 37 L 30 37 C 35 37 38 35 38 31 C 38 27 35 25 30 25 Z M 18 43 L 18 57 L 31 57 C 36 57 40 55 40 50 C 40 45 36 43 31 43 Z" />
+      <!-- A -->
+      <path d="M 66 18 L 76 18 L 90 64 L 81 64 L 71 31 L 61 64 L 52 64 Z" />
+      <!-- R -->
+      <path d="M 100 18 L 120 18 C 129 18 135 23 135 32 C 135 39 130 44 123 46 L 137 64 L 127 64 L 115 48 L 108 48 L 108 64 L 100 64 Z M 108 25 L 108 41 L 119 41 C 124 41 127 38 127 33 C 127 28 124 25 119 25 Z" />
+      <!-- A -->
+      <path d="M 148 18 L 158 18 L 172 64 L 163 64 L 153 31 L 143 64 L 134 64 Z" />
+      <!-- K -->
+      <path d="M 180 18 L 188 18 L 188 38 L 205 18 L 216 18 L 197 42 L 218 64 L 207 64 L 188 45 L 188 64 L 180 64 Z" />
+      <!-- A -->
+      <path d="M 226 18 L 236 18 L 250 64 L 241 64 L 231 31 L 221 64 L 212 64 Z" />
+    </g>
+    <!-- Tagline: Oilangiz farovonligi uchun -->
+    <text x="12" y="88" fill="#94A3B8" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" letter-spacing="0.05em">
+      Oilangiz farovonligi uchun
+    </text>
+  </g>
+</svg>

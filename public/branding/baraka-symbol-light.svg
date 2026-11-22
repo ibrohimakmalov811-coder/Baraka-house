@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%" fill="none">
+  <defs>
+    <linearGradient id="blueCyanGradLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00C4FF"/>
+      <stop offset="50%" stop-color="#0284C7"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+
+    <linearGradient id="purpleLoopGradLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="60%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#9333EA"/>
+    </linearGradient>
+
+    <linearGradient id="leafGradLight" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06B6D4"/>
+      <stop offset="50%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Top Bowl & House Silhouette of B -->
+  <path d="M 46 28 L 108 28 C 142 28 164 44 164 74 C 164 96 148 112 124 116 L 46 116 Z" 
+        fill="url(#blueCyanGradLight)" />
+
+  <!-- Bottom Bowl of B with Purple Gradient -->
+  <path d="M 46 94 L 118 94 C 152 94 176 112 176 142 C 176 172 148 188 106 188 L 46 188 Z" 
+        fill="url(#purpleLoopGradLight)" />
+
+  <!-- Integrated House Silhouette Cutout / Inlay (White on light mode) -->
+  <path d="M 50 114 L 105 76 L 142 102 C 140 134 126 150 96 150 L 50 150 Z" 
+        fill="#FFFFFF" />
+
+  <!-- 4-Square Window Element -->
+  <rect x="94" y="104" width="10" height="10" rx="2" fill="#0F172A" />
+  <rect x="108" y="104" width="10" height="10" rx="2" fill="#0F172A" />
+  <rect x="94" y="118" width="10" height="10" rx="2" fill="#0F172A" />
+  <rect x="108" y="118" width="10" height="10" rx="2" fill="#0F172A" />
+
+  <!-- Flowing Leaf / Sprout Shape at lower left -->
+  <path d="M 28 184 C 24 140 40 102 78 88 C 66 118 64 154 28 184 Z" 
+        fill="url(#leafGradLight)" />
+  <path d="M 40 178 C 42 150 56 122 84 108 C 76 132 72 158 40 178 Z" 
+        fill="#06B6D4" opacity="0.85" />
+</svg>
