@@ -16,7 +16,9 @@ import {
   Moon,
   LogOut,
   ChevronRight,
+  Lock,
 } from 'lucide-react';
+import { UserAvatar } from '../common/UserAvatar';
 
 interface SidebarProps {
   className?: string;
@@ -31,6 +33,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
     members,
     settings,
     openQuickAction,
+    currentUser,
+    lockApp,
   } = useFinanceStore();
 
   const navItems = [
@@ -185,20 +189,39 @@ export const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
           </span>
         </div>
 
-        {/* User Card */}
+        {/* User Card with Lock button */}
         <div
-          onClick={() => setActiveTab('family')}
-          className="flex items-center gap-3 p-2.5 rounded-xl bg-[var(--surface-hover)] hover:bg-[var(--surface-elevated)] cursor-pointer transition border border-[var(--border)]"
+          onClick={() => setActiveTab('settings')}
+          className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--surface-hover)] hover:bg-[var(--surface-elevated)] cursor-pointer transition border border-[var(--border)] group"
         >
-          <img
-            src={primaryUser.avatar}
-            alt={primaryUser.name}
-            className="w-9 h-9 rounded-full object-cover ring-2 ring-blue-500/50 dark:ring-cyan-500/40"
-          />
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-[var(--text-primary)] truncate">{primaryUser.name}</p>
-            <p className="text-[10px] text-[var(--text-muted)] truncate">{settings?.familyName || 'Rahimovlar Oilasi'}</p>
+          <div className="flex items-center gap-3 min-w-0">
+            <UserAvatar
+              avatarUrl={currentUser?.avatar || primaryUser.avatar}
+              name={currentUser?.fullName || primaryUser.name}
+              size="sm"
+              showEditButton={false}
+            />
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-[var(--text-primary)] truncate">
+                {currentUser?.displayName || currentUser?.fullName?.split(' ')[0] || primaryUser.name}
+              </p>
+              <p className="text-[10px] text-[var(--text-muted)] truncate">
+                {currentUser?.email || settings?.familyName || 'Hisob'}
+              </p>
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              lockApp();
+            }}
+            className="p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 transition"
+            title="Ilovani qulflash (Lock App)"
+          >
+            <Lock className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
     </aside>

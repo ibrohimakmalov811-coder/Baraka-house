@@ -1,7 +1,8 @@
 import React from 'react';
 import { useFinanceStore } from '../../store/useFinanceStore';
 import { Logo } from '../common/Logo';
-import { Bell, Search, Sun, Moon } from 'lucide-react';
+import { Bell, Search, Sun, Moon, Lock } from 'lucide-react';
+import { UserAvatar } from '../common/UserAvatar';
 
 interface MobileHeaderProps {
   onOpenMenu?: () => void;
@@ -16,6 +17,8 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenMenu, onOpenSe
     isDarkMode,
     toggleDarkMode,
     settings,
+    currentUser,
+    lockApp,
   } = useFinanceStore();
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -28,15 +31,16 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenMenu, onOpenSe
     <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-[var(--header-background)]/90 backdrop-blur-md border-b border-[var(--border)] lg:hidden transition-colors">
       {/* User profile & greeting */}
       <div className="flex items-center gap-2.5">
-        <img
-          src={primaryUser.avatar}
-          alt={primaryUser.name}
-          className="w-9 h-9 rounded-full object-cover ring-2 ring-blue-500/50 dark:ring-cyan-400"
+        <UserAvatar
+          avatarUrl={currentUser?.avatar || primaryUser.avatar}
+          name={currentUser?.fullName || primaryUser.name}
+          size="sm"
+          showEditButton={false}
         />
         <div>
           <p className="text-[10px] text-[var(--text-muted)] font-medium">Xush kelibsiz,</p>
           <p className="text-xs font-bold text-[var(--text-primary)] truncate max-w-[120px]">
-            {primaryUser.name.split(' ')[0]}
+            {currentUser?.displayName || currentUser?.fullName?.split(' ')[0] || primaryUser.name.split(' ')[0]}
           </p>
         </div>
       </div>
@@ -48,6 +52,14 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenMenu, onOpenSe
 
       {/* Right Action Icons */}
       <div className="flex items-center gap-2">
+        <button
+          onClick={lockApp}
+          className="p-2 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 transition"
+          title="Ilovani qulflash"
+        >
+          <Lock className="w-4 h-4" />
+        </button>
+
         <button
           onClick={toggleDarkMode}
           className="p-2 rounded-full bg-[var(--surface-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border)] transition"

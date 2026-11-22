@@ -18,6 +18,10 @@ import {
   Moon,
   Sun,
   ShieldAlert,
+  Lock,
+  Eye,
+  EyeOff,
+  KeyRound,
 } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
@@ -31,6 +35,8 @@ export const SettingsPage: React.FC = () => {
     setCurrency,
     currentUser,
     logout,
+    lockApp,
+    changePassword,
     isDarkMode,
     toggleDarkMode,
   } = useFinanceStore();
@@ -42,6 +48,46 @@ export const SettingsPage: React.FC = () => {
   const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Password Change Form States
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPwd, setShowCurrentPwd] = useState(false);
+  const [showNewPwd, setShowNewPwd] = useState(false);
+  const [pwdErrorMsg, setPwdErrorMsg] = useState<string | null>(null);
+  const [pwdSuccessMsg, setPwdSuccessMsg] = useState<string | null>(null);
+  const [isChangingPwd, setIsChangingPwd] = useState(false);
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwdErrorMsg(null);
+    setPwdSuccessMsg(null);
+
+    if (newPassword !== confirmPassword) {
+      setPwdErrorMsg('Yangi parollar bir-biriga mos kelmadi.');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPwdErrorMsg('Yangi parol kamida 6 ta belgidan iborat boʻlishi kerak.');
+      return;
+    }
+
+    setIsChangingPwd(true);
+    const res = await changePassword(currentPassword, newPassword);
+    setIsChangingPwd(false);
+
+    if (!res.success) {
+      setPwdErrorMsg(res.error || 'Parolni oʻzgartirishda xatolik yuz berdi.');
+    } else {
+      setPwdSuccessMsg('Parol muvaffaqiyatli yangilandi!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setPwdSuccessMsg(null), 4000);
+    }
+  };
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,13 +173,25 @@ export const SettingsPage: React.FC = () => {
               <User className="w-5 h-5 text-cyan-500" />
               <h3 className="text-base font-bold text-[var(--text-primary)]">Foydalanuvchi Profili</h3>
             </div>
-            <button
-              onClick={logout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 text-xs font-semibold border border-rose-500/20 transition"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Chiqish</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={lockApp}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 text-xs font-semibold border border-amber-500/25 transition"
+                title="Ilovani hozir qulflash"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Ilovani qulflash</span>
+              </button>
+              <button
+                type="button"
+                onClick={logout}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 text-xs font-semibold border border-rose-500/20 transition"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Chiqish</span>
+              </button>
+            </div>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -164,6 +222,114 @@ export const SettingsPage: React.FC = () => {
               Rasmni oʻzgartirish
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Password Change Card */}
+      {currentUser && (
+        <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-lg space-y-4">
+          <div className="flex items-center gap-2.5 pb-3 border-b border-[var(--border)]">
+            <KeyRound className="w-5 h-5 text-blue-500 dark:text-cyan-400" />
+            <div>
+              <h3 className="text-base font-bold text-[var(--text-primary)]">Shaxsiy Parolni Oʻzgartirish</h3>
+              <p className="text-xs text-[var(--text-muted)]">
+                Ilovaga kirish parolini yangilang. Amaldagi parolingizni tasdiqlashingiz lozim.
+              </p>
+            </div>
+          </div>
+
+          {pwdSuccessMsg && (
+            <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>{pwdSuccessMsg}</span>
+            </div>
+          )}
+
+          {pwdErrorMsg && (
+            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>{pwdErrorMsg}</span>
+            </div>
+          )}
+
+          <form onSubmit={handlePasswordChange} className="space-y-4 max-w-lg">
+            <div>
+              <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">
+                Amaldagi parol
+              </label>
+              <div className="relative">
+                <input
+                  type={showCurrentPwd ? 'text' : 'password'}
+                  required
+                  placeholder="Amaldagi parolni kiriting"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPwd(!showCurrentPwd)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                >
+                  {showCurrentPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">
+                  Yangi parol
+                </label>
+                <div className="relative">
+                  <input
+                    type={showNewPwd ? 'text' : 'password'}
+                    required
+                    placeholder="Kamida 6 belgi"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPwd(!showNewPwd)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  >
+                    {showNewPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">
+                  Yangi parolni tasdiqlang
+                </label>
+                <input
+                  type={showNewPwd ? 'text' : 'password'}
+                  required
+                  placeholder="Parolni qayta kiriting"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Security Explanation */}
+            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-[11px] text-[var(--text-secondary)] leading-relaxed">
+              💡 <strong>Lokal autentifikatsiya eslatmasi:</strong> BARAKA parollarni Web Crypto PBKDF2 shifrlash orqali xavfsiz saqlaydi. Dastur toʻliq lokal boʻlgani uchun parolni unutganingizda email orqali tiklash backend serveri mavjud emas. Yangi parolingizni eslab qoling.
+            </div>
+
+            <div className="flex justify-end pt-1">
+              <button
+                type="submit"
+                disabled={isChangingPwd}
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-md shadow-blue-600/20 active:scale-95 disabled:opacity-50"
+              >
+                {isChangingPwd ? 'Yangilanmoqda...' : 'Parolni Oʻzgartirish'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

@@ -15,12 +15,27 @@ import {
 } from '../types';
 import { storageService } from '../services/storageService';
 import { hashPassword, verifyPassword } from '../utils/crypto';
+import {
+  INITIAL_MEMBERS,
+  INITIAL_CARDS,
+  INITIAL_SERVICES,
+  INITIAL_BUDGETS,
+  INITIAL_GOALS,
+  INITIAL_SUBSCRIPTIONS,
+  INITIAL_TRANSACTIONS,
+  INITIAL_CALENDAR_EVENTS,
+  INITIAL_NOTIFICATIONS,
+} from '../database/db';
 
 interface FinanceState {
-  // Auth & Session
+  // Auth & App Lock Session
   currentUser: UserProfile | null;
   session: UserSession | null;
   isAuthLoading: boolean;
+  isUnlocked: boolean;
+  lockedUser: UserProfile | null;
+  showAccountSwitcher: boolean;
+  failedUnlockAttempts: number;
 
   // Navigation & UI state
   activeTab: string;
@@ -46,11 +61,16 @@ interface FinanceState {
   notifications: AppNotification[];
   members: FamilyMember[];
 
-  // Auth Actions
+  // Auth & Lock Actions
   initAuthAndData: () => Promise<void>;
   register: (fullName: string, email: string, password: string, avatar?: string) => Promise<{ success: boolean; error?: string }>;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  lockApp: () => void;
+  unlockApp: (password: string) => Promise<{ success: boolean; error?: string }>;
+  switchAccount: () => void;
+  returnToLockedAccount: () => void;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   deleteCurrentAccount: () => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
   updateAvatar: (avatarDataUrl: string) => void;
@@ -130,6 +150,10 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   currentUser: null,
   session: null,
   isAuthLoading: true,
+  isUnlocked: false,
+  lockedUser: null,
+  showAccountSwitcher: false,
+  failedUnlockAttempts: 0,
 
   activeTab: 'overview',
   isDarkMode: true,
@@ -166,45 +190,181 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       document.documentElement.classList.remove('dark');
     }
 
-    // Check active session
-    const session = storageService.getSession();
-    if (session && session.userId) {
-      const profile = storageService.getUserProfile(session.userId);
+    // MANDATORY REQUIREMENT: Every fresh visit / refresh MUST start LOCKED!
+    // Never persist isAuthenticated=true across reloads or sessions!
+    const lastAccountId = storageService.getLastAccountId();
+    if (lastAccountId) {
+      const profile = storageService.getUserProfile(lastAccountId);
       if (profile) {
-        // Load user data
-        const uid = session.userId;
-        const transactions = storageService.getTransactions(uid);
-        const cards = storageService.getCards(uid);
-        const services = storageService.getServices(uid);
-        const budgets = storageService.getBudgets(uid);
-        const goals = storageService.getGoals(uid);
-        const subscriptions = storageService.getSubscriptions(uid);
-        const calendarEvents = storageService.getCalendar(uid);
-        const notifications = storageService.getNotifications(uid);
-        const members = storageService.getFamilyMembers(uid);
-
         set({
-          currentUser: profile,
-          session,
-          currency: profile.primaryCurrency || 'UZS',
-          transactions,
-          cards,
-          services,
-          budgets,
-          goals,
-          subscriptions,
-          calendarEvents,
-          notifications,
-          members,
-          selectedCardId: cards[0]?.id || '',
-          isDarkMode: isDark,
+          lockedUser: profile,
+          currentUser: null,
+          session: null,
+          isUnlocked: false,
           isAuthLoading: false,
+          showAccountSwitcher: false,
+          isDarkMode: isDark,
+          failedUnlockAttempts: 0,
         });
         return;
       }
     }
 
-    set({ currentUser: null, session: null, isAuthLoading: false, isDarkMode: isDark });
+    const accounts = storageService.getAccounts();
+    if (accounts.length > 0) {
+      const latestAccount = accounts[accounts.length - 1];
+      const profile = storageService.getUserProfile(latestAccount.id);
+      if (profile) {
+        storageService.setLastAccountId(profile.id);
+        set({
+          lockedUser: profile,
+          currentUser: null,
+          session: null,
+          isUnlocked: false,
+          isAuthLoading: false,
+          showAccountSwitcher: false,
+          isDarkMode: isDark,
+          failedUnlockAttempts: 0,
+        });
+        return;
+      }
+    }
+
+    // No local accounts exist at all -> Direct to Register/Login
+    set({
+      currentUser: null,
+      lockedUser: null,
+      session: null,
+      isUnlocked: false,
+      isAuthLoading: false,
+      showAccountSwitcher: true,
+      isDarkMode: isDark,
+      failedUnlockAttempts: 0,
+    });
+  },
+
+  unlockApp: async (password: string) => {
+    const lockedUser = get().lockedUser;
+    if (!lockedUser) {
+      return { success: false, error: 'Hisob topilmadi.' };
+    }
+
+    const account = storageService.findAccountById(lockedUser.id);
+    if (!account) {
+      return { success: false, error: 'Hisob maʼlumotlari topilmadi.' };
+    }
+
+    // Add progressive delay after multiple failed attempts
+    const attempts = get().failedUnlockAttempts;
+    if (attempts >= 3) {
+      await new Promise((resolve) => setTimeout(resolve, Math.min(3000, attempts * 750)));
+    }
+
+    const isValid = await verifyPassword(password, account.passwordHash, account.salt);
+    if (!isValid) {
+      set((state) => ({ failedUnlockAttempts: state.failedUnlockAttempts + 1 }));
+      return {
+        success: false,
+        error: 'Kiritilgan parol notoʻgʻri. Iltimos, qaytadan urinib koʻring.',
+      };
+    }
+
+    // Password is correct -> Unlock and load user's isolated data
+    storageService.setLastAccountId(lockedUser.id);
+    const uid = lockedUser.id;
+    const transactions = storageService.getTransactions(uid);
+    const cards = storageService.getCards(uid);
+    const services = storageService.getServices(uid);
+    const budgets = storageService.getBudgets(uid);
+    const goals = storageService.getGoals(uid);
+    const subscriptions = storageService.getSubscriptions(uid);
+    const calendarEvents = storageService.getCalendar(uid);
+    const notifications = storageService.getNotifications(uid);
+    const members = storageService.getFamilyMembers(uid);
+
+    const newSession: UserSession = {
+      userId: uid,
+      token: `tok_${Date.now()}_${Math.random().toString(36).substring(2)}`,
+      loggedInAt: Date.now(),
+    };
+    storageService.setSession(newSession);
+
+    set({
+      currentUser: lockedUser,
+      session: newSession,
+      isUnlocked: true,
+      failedUnlockAttempts: 0,
+      currency: lockedUser.primaryCurrency || 'UZS',
+      transactions,
+      cards,
+      services,
+      budgets,
+      goals,
+      subscriptions,
+      calendarEvents,
+      notifications,
+      members,
+      selectedCardId: cards[0]?.id || '',
+      showAccountSwitcher: false,
+    });
+
+    return { success: true };
+  },
+
+  lockApp: () => {
+    const active = get().currentUser || get().lockedUser;
+    if (active) {
+      storageService.setLastAccountId(active.id);
+    }
+    // Clear all sensitive in-memory financial data when locked
+    set({
+      isUnlocked: false,
+      currentUser: null,
+      session: null,
+      lockedUser: active || get().lockedUser,
+      transactions: [],
+      cards: [],
+      services: [],
+      budgets: [],
+      goals: [],
+      subscriptions: [],
+      calendarEvents: [],
+      notifications: [],
+      showAccountSwitcher: false,
+    });
+  },
+
+  switchAccount: () => {
+    set({ showAccountSwitcher: true, isUnlocked: false });
+  },
+
+  returnToLockedAccount: () => {
+    set({ showAccountSwitcher: false });
+  },
+
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    const user = get().currentUser;
+    if (!user) return { success: false, error: 'Foydalanuvchi tizimga kirmagan.' };
+
+    const account = storageService.findAccountById(user.id);
+    if (!account) return { success: false, error: 'Hisob topilmadi.' };
+
+    const isValid = await verifyPassword(currentPassword, account.passwordHash, account.salt);
+    if (!isValid) {
+      return { success: false, error: 'Amaldagi parol notoʻgʻri kiritildi.' };
+    }
+
+    if (newPassword.length < 6) {
+      return { success: false, error: 'Yangi parol kamida 6 ta belgidan iborat boʻlishi kerak.' };
+    }
+
+    const { hash, salt } = await hashPassword(newPassword);
+    const ok = storageService.updateAccountPassword(user.id, hash, salt);
+    if (!ok) {
+      return { success: false, error: 'Parolni saqlashda xatolik yuz berdi.' };
+    }
+
+    return { success: true };
   },
 
   register: async (fullName, email, password, avatar) => {
@@ -256,6 +416,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     storageService.saveAccount(newAccount);
     storageService.setUserProfile(userId, newProfile);
     storageService.setSession(newSession);
+    storageService.setLastAccountId(userId);
 
     // BRAND-NEW ACCOUNT STARTS 100% EMPTY!
     storageService.setTransactions(userId, []);
@@ -268,15 +429,20 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     storageService.setNotifications(userId, []);
     storageService.setFamilyMembers(userId, [ownerMember]);
 
+    // First successful registration may directly open the dashboard
     set({
       currentUser: newProfile,
+      lockedUser: newProfile,
       session: newSession,
+      isUnlocked: true,
+      failedUnlockAttempts: 0,
+      showAccountSwitcher: false,
       currency: 'UZS',
       settings: {
-    familyName: 'Rahimovlar Oilasi',
-    primaryCurrency: 'UZS',
-  },
-  transactions: [],
+        familyName: `${newProfile.displayName} Oilasi`,
+        primaryCurrency: 'UZS',
+      },
+      transactions: [],
       cards: [],
       services: [],
       budgets: [],
@@ -315,6 +481,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     };
 
     storageService.setSession(newSession);
+    storageService.setLastAccountId(account.id);
 
     // Load ONLY this user's data
     const uid = account.id;
@@ -330,7 +497,11 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
     set({
       currentUser: profile,
+      lockedUser: profile,
       session: newSession,
+      isUnlocked: true,
+      failedUnlockAttempts: 0,
+      showAccountSwitcher: false,
       currency: profile.primaryCurrency || 'UZS',
       transactions,
       cards,
@@ -350,14 +521,15 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
   logout: () => {
     storageService.clearSession();
+    const lastId = storageService.getLastAccountId();
+    const lockedUser = lastId ? storageService.getUserProfile(lastId) : null;
     set({
       currentUser: null,
       session: null,
-      settings: {
-    familyName: 'Rahimovlar Oilasi',
-    primaryCurrency: 'UZS',
-  },
-  transactions: [],
+      isUnlocked: false,
+      lockedUser,
+      showAccountSwitcher: true,
+      transactions: [],
       cards: [],
       services: [],
       budgets: [],
@@ -367,7 +539,6 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       notifications: [],
       members: [],
       selectedCardId: '',
-      activeTab: 'overview',
     });
   },
 
@@ -1074,25 +1245,40 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   resetToDemoData: async () => {
     const user = get().currentUser;
     if (!user) return;
-    // Clear user data to clean slate
-    storageService.setTransactions(user.id, []);
-    storageService.setCards(user.id, []);
-    storageService.setServices(user.id, []);
-    storageService.setBudgets(user.id, []);
-    storageService.setGoals(user.id, []);
-    storageService.setSubscriptions(user.id, []);
-    storageService.setCalendar(user.id, []);
-    storageService.setNotifications(user.id, []);
+    const uid = user.id;
+
+    // Load initial realistic demo data scoped to current user
+    const scopedCards = INITIAL_CARDS.map((c) => ({ ...c, id: `card_${c.id}_${Date.now()}`, userId: uid }));
+    const scopedTxs = INITIAL_TRANSACTIONS.map((t) => ({ ...t, id: `tx_${t.id}_${Date.now()}`, userId: uid }));
+    const scopedServices = INITIAL_SERVICES.map((s) => ({ ...s, id: `srv_${s.id}_${Date.now()}`, userId: uid }));
+    const scopedBudgets = INITIAL_BUDGETS.map((b) => ({ ...b, id: `bud_${b.id}_${Date.now()}`, userId: uid }));
+    const scopedGoals = INITIAL_GOALS.map((g) => ({ ...g, id: `goal_${g.id}_${Date.now()}`, userId: uid }));
+    const scopedSubs = INITIAL_SUBSCRIPTIONS.map((s) => ({ ...s, id: `sub_${s.id}_${Date.now()}`, userId: uid }));
+    const scopedCal = INITIAL_CALENDAR_EVENTS.map((e) => ({ ...e, id: `cal_${e.id}_${Date.now()}`, userId: uid }));
+    const scopedNotifs = INITIAL_NOTIFICATIONS.map((n) => ({ ...n, id: `notif_${n.id}_${Date.now()}`, userId: uid }));
+    const scopedMembers = INITIAL_MEMBERS.map((m) => ({ ...m, userId: uid }));
+
+    storageService.setCards(uid, scopedCards);
+    storageService.setTransactions(uid, scopedTxs);
+    storageService.setServices(uid, scopedServices);
+    storageService.setBudgets(uid, scopedBudgets);
+    storageService.setGoals(uid, scopedGoals);
+    storageService.setSubscriptions(uid, scopedSubs);
+    storageService.setCalendar(uid, scopedCal);
+    storageService.setNotifications(uid, scopedNotifs);
+    storageService.setFamilyMembers(uid, scopedMembers);
+
     set({
-      transactions: [],
-      cards: [],
-      services: [],
-      budgets: [],
-      goals: [],
-      subscriptions: [],
-      calendarEvents: [],
-      notifications: [],
-      selectedCardId: '',
+      cards: scopedCards,
+      transactions: scopedTxs,
+      services: scopedServices,
+      budgets: scopedBudgets,
+      goals: scopedGoals,
+      subscriptions: scopedSubs,
+      calendarEvents: scopedCal,
+      notifications: scopedNotifs,
+      members: scopedMembers,
+      selectedCardId: scopedCards[0]?.id || '',
     });
   },
 

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useFinanceStore } from '../../store/useFinanceStore';
-import { Search, Bell, Plus, Calendar, DollarSign } from 'lucide-react';
+import { Search, Bell, Plus, Calendar, Lock } from 'lucide-react';
 import { GlobalSearchModal } from '../modals/GlobalSearchModal';
+import { UserAvatar } from '../common/UserAvatar';
 
 interface HeaderProps {
   title: string;
@@ -18,6 +19,8 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
     setIsNotificationOpen,
     openQuickAction,
     members,
+    currentUser,
+    lockApp,
   } = useFinanceStore();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -95,6 +98,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
         <button
           onClick={() => setIsNotificationOpen(true)}
           className="relative p-2 rounded-xl bg-[var(--surface-hover)] hover:bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition shadow-sm"
+          title="Bildirishnomalar"
         >
           <Bell className="w-4 h-4 text-blue-500 dark:text-cyan-400" />
           {unreadCount > 0 && (
@@ -104,11 +108,21 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
           )}
         </button>
 
+        {/* Lock Application Button */}
+        <button
+          onClick={lockApp}
+          className="p-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 text-amber-600 dark:text-amber-400 transition shadow-sm"
+          title="Ilovani qulflash (Lock App)"
+        >
+          <Lock className="w-4 h-4" />
+        </button>
+
         {/* Profile Avatar */}
-        <img
-          src={primaryUser.avatar}
-          alt={primaryUser.name}
-          className="w-9 h-9 rounded-full object-cover ring-2 ring-blue-500/50"
+        <UserAvatar
+          avatarUrl={currentUser?.avatar || primaryUser.avatar}
+          name={currentUser?.fullName || primaryUser.name}
+          size="sm"
+          showEditButton={false}
         />
       </div>
 

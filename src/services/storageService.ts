@@ -15,7 +15,7 @@ import {
 
 const ACCOUNTS_KEY = 'baraka:accounts:v1';
 const SESSION_KEY = 'baraka:session:v1';
-const PREFERENCES_KEY = 'baraka:preferences';
+const LAST_ACCOUNT_KEY = 'baraka:last_account_id';
 
 function getStorageItem<T>(key: string, defaultValue: T): T {
   try {
@@ -61,6 +61,37 @@ export const storageService = {
   findAccountByEmail(email: string): UserAccount | undefined {
     const accounts = this.getAccounts();
     return accounts.find((a) => a.email.toLowerCase() === email.toLowerCase());
+  },
+
+  findAccountById(id: string): UserAccount | undefined {
+    const accounts = this.getAccounts();
+    return accounts.find((a) => a.id === id);
+  },
+
+  updateAccountPassword(userId: string, newHash: string, newSalt: string): boolean {
+    const accounts = this.getAccounts();
+    const idx = accounts.findIndex((a) => a.id === userId);
+    if (idx === -1) return false;
+    accounts[idx].passwordHash = newHash;
+    accounts[idx].salt = newSalt;
+    return setStorageItem(ACCOUNTS_KEY, accounts);
+  },
+
+  // Last Selected Local Account for Password-Only Entry
+  getLastAccountId(): string | null {
+    return localStorage.getItem(LAST_ACCOUNT_KEY);
+  },
+
+  setLastAccountId(userId: string): void {
+    try {
+      localStorage.setItem(LAST_ACCOUNT_KEY, userId);
+    } catch (e) {
+      console.error('Failed to save last account ID', e);
+    }
+  },
+
+  clearLastAccountId(): void {
+    localStorage.removeItem(LAST_ACCOUNT_KEY);
   },
 
   // Session
@@ -168,6 +199,10 @@ export const storageService = {
     const session = this.getSession();
     if (session?.userId === userId) {
       this.clearSession();
+    }
+
+    if (this.getLastAccountId() === userId) {
+      this.clearLastAccountId();
     }
 
     // Remove all user keys

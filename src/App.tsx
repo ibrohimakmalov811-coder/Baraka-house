@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useFinanceStore } from './store/useFinanceStore';
 import { Sidebar } from './components/navigation/Sidebar';
 import { Header } from './components/navigation/Header';
@@ -21,13 +21,25 @@ import { FamilyPage } from './pages/Family/FamilyPage';
 import { SubscriptionsPage } from './pages/Subscriptions/SubscriptionsPage';
 import { SettingsPage } from './pages/Settings/SettingsPage';
 import { AuthPage } from './pages/Auth/AuthPage';
+import { LockScreen } from './pages/Auth/LockScreen';
+import { useInactivityLock } from './hooks/useInactivityLock';
 
 export function App() {
-  const { activeTab, currentUser, session, isAuthLoading, loadAllData } = useFinanceStore();
+  const {
+    activeTab,
+    isUnlocked,
+    lockedUser,
+    showAccountSwitcher,
+    isAuthLoading,
+    initAuthAndData,
+  } = useFinanceStore();
+
+  // Inactivity auto-lock hook (5 minutes)
+  useInactivityLock();
 
   useEffect(() => {
-    loadAllData();
-  }, [loadAllData]);
+    initAuthAndData();
+  }, [initAuthAndData]);
 
   if (isAuthLoading) {
     return (
@@ -38,8 +50,12 @@ export function App() {
     );
   }
 
-  // Mandatory Auth Check: Guest sees Register / Login screen
-  if (!session || !currentUser) {
+  // Mandatory App Lock Check:
+  // If not unlocked, check if returning user lock screen or auth registration/login page
+  if (!isUnlocked) {
+    if (lockedUser && !showAccountSwitcher) {
+      return <LockScreen />;
+    }
     return <AuthPage />;
   }
 

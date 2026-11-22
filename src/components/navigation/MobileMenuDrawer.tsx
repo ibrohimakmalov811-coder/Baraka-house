@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Sun,
   Moon,
+  Lock,
 } from 'lucide-react';
 
 interface MobileMenuDrawerProps {
@@ -24,7 +25,7 @@ interface MobileMenuDrawerProps {
 }
 
 export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({ isOpen, onClose }) => {
-  const { activeTab, setActiveTab, isDarkMode, toggleDarkMode, settings } = useFinanceStore();
+  const { activeTab, setActiveTab, isDarkMode, toggleDarkMode, settings, lockApp } = useFinanceStore();
 
   if (!isOpen) return null;
 
@@ -148,16 +149,28 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({ isOpen, onCl
         </div>
 
         {/* Bottom Drawer Actions */}
-        <div className="pt-3 border-t border-[var(--border)] flex items-center justify-between">
+        <div className="pt-3 border-t border-[var(--border)] flex items-center justify-between gap-2">
+          <button
+            onClick={() => {
+              onClose();
+              lockApp();
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/10 text-xs text-amber-600 dark:text-amber-400 border border-amber-500/25 transition"
+            title="Ilovani qulflash"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            <span>Qulflash</span>
+          </button>
+
           <button
             onClick={toggleDarkMode}
             className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[var(--surface-hover)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border)] transition"
           >
             {isDarkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-blue-600" />}
-            <span>Rejimni oʻzgartirish</span>
+            <span className="hidden sm:inline">Rejim</span>
           </button>
 
-          <span className="text-xs font-mono font-bold text-blue-600 dark:text-cyan-400">
+          <span className="text-xs font-mono font-bold text-blue-600 dark:text-cyan-400 truncate max-w-[100px]">
             {settings?.familyName || 'Rahimovlar Oilasi'}
           </span>
         </div>
