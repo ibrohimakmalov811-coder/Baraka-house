@@ -59,26 +59,26 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl rounded-2xl bg-baraka-card border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+      <div className="relative w-full max-w-2xl rounded-2xl bg-[var(--surface)] text-[var(--text-primary)] border border-[var(--border)] shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
         {/* Search Input Bar */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10 bg-slate-900/60">
-          <Search className="w-5 h-5 text-cyan-400 shrink-0" />
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--border)] bg-[var(--input-background)]">
+          <Search className="w-5 h-5 text-blue-500 dark:text-cyan-400 shrink-0" />
           <input
             type="text"
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Qidiruv: amaliyotlar, kommunal, obunalar, maqsadlar, oila aʼzolari..."
-            className="w-full bg-transparent text-white placeholder-slate-400 text-base focus:outline-none"
+            className="w-full bg-transparent text-[var(--text-primary)] placeholder-[var(--input-placeholder)] text-base focus:outline-none"
           />
           {query && (
-            <button onClick={() => setQuery('')} className="p-1 text-slate-400 hover:text-white">
+            <button onClick={() => setQuery('')} className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)]">
               <X className="w-4 h-4" />
             </button>
           )}
           <button
             onClick={onClose}
-            className="px-2 py-1 text-xs font-semibold rounded bg-white/10 text-slate-300 hover:bg-white/20"
+            className="px-2 py-1 text-xs font-semibold rounded bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           >
             ESC
           </button>
@@ -87,14 +87,14 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
         {/* Results Area */}
         <div className="overflow-y-auto p-4 space-y-4">
           {!query.trim() && (
-            <div className="text-center py-10 text-slate-400 text-sm">
+            <div className="text-center py-10 text-[var(--text-muted)] text-sm">
               <p>Qidirmoqchi boʻlgan soʻzingizni yozing...</p>
               <div className="flex flex-wrap justify-center gap-2 mt-4 text-xs">
                 {['Elektr', 'Oziq-ovqat', 'Netflix', 'Kottej', 'Jasur', 'Maosh'].map((tag) => (
                   <button
                     key={tag}
                     onClick={() => setQuery(tag)}
-                    className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 transition"
+                    className="px-3 py-1.5 rounded-lg bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
                   >
                     #{tag}
                   </button>
@@ -108,11 +108,11 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
               {/* Transactions */}
               {filteredResults.transactions.length > 0 && (
                 <div>
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
+                  <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">
                     <span className="flex items-center gap-1.5">
-                      <Receipt className="w-3.5 h-3.5 text-cyan-400" /> Amaliyotlar ({filteredResults.transactions.length})
+                      <Receipt className="w-3.5 h-3.5 text-blue-500 dark:text-cyan-400" /> Amaliyotlar ({filteredResults.transactions.length})
                     </span>
-                    <button onClick={() => navigateTo('transactions')} className="text-cyan-400 hover:underline">
+                    <button onClick={() => navigateTo('transactions')} className="text-blue-600 dark:text-cyan-400 hover:underline">
                       Barchasi
                     </button>
                   </div>
@@ -121,15 +121,15 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
                       <div
                         key={tx.id}
                         onClick={() => navigateTo('transactions')}
-                        className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer transition"
+                        className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--surface-hover)] hover:bg-[var(--surface-elevated)] border border-[var(--border)] cursor-pointer transition"
                       >
                         <div>
-                          <p className="text-sm font-medium text-white">{tx.title}</p>
-                          <p className="text-xs text-slate-400">{formatDate(tx.date)}</p>
+                          <p className="text-sm font-medium text-[var(--text-primary)]">{tx.title}</p>
+                          <p className="text-xs text-[var(--text-muted)]">{formatDate(tx.date)}</p>
                         </div>
                         <span
                           className={`font-semibold text-sm ${
-                            tx.type === 'income' ? 'text-emerald-400' : 'text-slate-200'
+                            tx.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-[var(--text-primary)]'
                           }`}
                         >
                           {tx.type === 'income' ? '+' : '-'} {formatCurrency(tx.amount, currency)}
@@ -143,11 +143,11 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
               {/* Services */}
               {filteredResults.services.length > 0 && (
                 <div>
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
+                  <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">
                     <span className="flex items-center gap-1.5">
-                      <CreditCard className="w-3.5 h-3.5 text-blue-400" /> Kommunal toʻlovlar
+                      <CreditCard className="w-3.5 h-3.5 text-blue-500 dark:text-cyan-400" /> Kommunal toʻlovlar
                     </span>
-                    <button onClick={() => navigateTo('payments')} className="text-cyan-400 hover:underline">
+                    <button onClick={() => navigateTo('payments')} className="text-blue-600 dark:text-cyan-400 hover:underline">
                       Oʻtish
                     </button>
                   </div>
@@ -156,13 +156,13 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
                       <div
                         key={srv.id}
                         onClick={() => navigateTo('payments')}
-                        className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer transition"
+                        className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--surface-hover)] hover:bg-[var(--surface-elevated)] border border-[var(--border)] cursor-pointer transition"
                       >
                         <div>
-                          <p className="text-sm font-medium text-white">{srv.name}</p>
-                          <p className="text-xs text-slate-400">{srv.providerName} • {srv.accountNumber}</p>
+                          <p className="text-sm font-medium text-[var(--text-primary)]">{srv.name}</p>
+                          <p className="text-xs text-[var(--text-muted)]">{srv.providerName} • {srv.accountNumber}</p>
                         </div>
-                        <span className="text-xs text-amber-400 font-semibold">
+                        <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold">
                           {formatCurrency(srv.amountDue, currency)}
                         </span>
                       </div>
@@ -174,11 +174,11 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
               {/* Subscriptions */}
               {filteredResults.subscriptions.length > 0 && (
                 <div>
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
+                  <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">
                     <span className="flex items-center gap-1.5">
-                      <Repeat className="w-3.5 h-3.5 text-purple-400" /> Obunalar
+                      <Repeat className="w-3.5 h-3.5 text-purple-500" /> Obunalar
                     </span>
-                    <button onClick={() => navigateTo('subscriptions')} className="text-cyan-400 hover:underline">
+                    <button onClick={() => navigateTo('subscriptions')} className="text-blue-600 dark:text-cyan-400 hover:underline">
                       Oʻtish
                     </button>
                   </div>
@@ -187,13 +187,13 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
                       <div
                         key={sub.id}
                         onClick={() => navigateTo('subscriptions')}
-                        className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer transition"
+                        className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--surface-hover)] hover:bg-[var(--surface-elevated)] border border-[var(--border)] cursor-pointer transition"
                       >
                         <div>
-                          <p className="text-sm font-medium text-white">{sub.name}</p>
-                          <p className="text-xs text-slate-400">{sub.provider}</p>
+                          <p className="text-sm font-medium text-[var(--text-primary)]">{sub.name}</p>
+                          <p className="text-xs text-[var(--text-muted)]">{sub.provider}</p>
                         </div>
-                        <span className="text-xs text-slate-300 font-semibold">
+                        <span className="text-xs text-[var(--text-secondary)] font-semibold">
                           {formatCurrency(sub.amount, currency)} / oy
                         </span>
                       </div>
@@ -205,11 +205,11 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
               {/* Goals */}
               {filteredResults.goals.length > 0 && (
                 <div>
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
+                  <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">
                     <span className="flex items-center gap-1.5">
-                      <Target className="w-3.5 h-3.5 text-emerald-400" /> Jamgʻarma maqsadlari
+                      <Target className="w-3.5 h-3.5 text-emerald-500" /> Jamgʻarma maqsadlari
                     </span>
-                    <button onClick={() => navigateTo('goals')} className="text-cyan-400 hover:underline">
+                    <button onClick={() => navigateTo('goals')} className="text-blue-600 dark:text-cyan-400 hover:underline">
                       Oʻtish
                     </button>
                   </div>
@@ -218,15 +218,15 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
                       <div
                         key={g.id}
                         onClick={() => navigateTo('goals')}
-                        className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer transition"
+                        className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--surface-hover)] hover:bg-[var(--surface-elevated)] border border-[var(--border)] cursor-pointer transition"
                       >
                         <div>
-                          <p className="text-sm font-medium text-white">{g.title}</p>
-                          <p className="text-xs text-slate-400">
+                          <p className="text-sm font-medium text-[var(--text-primary)]">{g.title}</p>
+                          <p className="text-xs text-[var(--text-muted)]">
                             {formatCurrency(g.currentAmount, currency)} / {formatCurrency(g.targetAmount, currency)}
                           </p>
                         </div>
-                        <span className="text-xs text-cyan-400 font-bold">
+                        <span className="text-xs text-blue-600 dark:text-cyan-400 font-bold">
                           {Math.round((g.currentAmount / g.targetAmount) * 100)}%
                         </span>
                       </div>
@@ -238,11 +238,11 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
               {/* Family members */}
               {filteredResults.members.length > 0 && (
                 <div>
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
+                  <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-secondary)] mb-2 uppercase tracking-wider">
                     <span className="flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5 text-pink-400" /> Oila aʼzolari
+                      <Users className="w-3.5 h-3.5 text-pink-500" /> Oila aʼzolari
                     </span>
-                    <button onClick={() => navigateTo('family')} className="text-cyan-400 hover:underline">
+                    <button onClick={() => navigateTo('family')} className="text-blue-600 dark:text-cyan-400 hover:underline">
                       Oʻtish
                     </button>
                   </div>
@@ -251,16 +251,16 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
                       <div
                         key={m.id}
                         onClick={() => navigateTo('family')}
-                        className="flex items-center justify-between p-2.5 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer transition"
+                        className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--surface-hover)] hover:bg-[var(--surface-elevated)] border border-[var(--border)] cursor-pointer transition"
                       >
                         <div className="flex items-center gap-2.5">
                           <img src={m.avatar} alt={m.name} className="w-7 h-7 rounded-full object-cover" />
                           <div>
-                            <p className="text-sm font-medium text-white">{m.name}</p>
-                            <p className="text-xs text-slate-400">{m.roleTitle}</p>
+                            <p className="text-sm font-medium text-[var(--text-primary)]">{m.name}</p>
+                            <p className="text-xs text-[var(--text-muted)]">{m.roleTitle}</p>
                           </div>
                         </div>
-                        <ArrowRight className="w-4 h-4 text-slate-400" />
+                        <ArrowRight className="w-4 h-4 text-[var(--text-muted)]" />
                       </div>
                     ))}
                   </div>

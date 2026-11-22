@@ -25,17 +25,17 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenMenu, onOpenSe
   };
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-[#07111F]/90 backdrop-blur-md border-b border-white/10 lg:hidden">
+    <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-[var(--header-background)]/90 backdrop-blur-md border-b border-[var(--border)] lg:hidden transition-colors">
       {/* User profile & greeting */}
       <div className="flex items-center gap-2.5">
         <img
           src={primaryUser.avatar}
           alt={primaryUser.name}
-          className="w-9 h-9 rounded-full object-cover ring-2 ring-cyan-400"
+          className="w-9 h-9 rounded-full object-cover ring-2 ring-blue-500/50 dark:ring-cyan-400"
         />
         <div>
-          <p className="text-[10px] text-slate-400 font-medium">Xush kelibsiz,</p>
-          <p className="text-xs font-bold text-white truncate max-w-[120px]">
+          <p className="text-[10px] text-[var(--text-muted)] font-medium">Xush kelibsiz,</p>
+          <p className="text-xs font-bold text-[var(--text-primary)] truncate max-w-[120px]">
             {primaryUser.name.split(' ')[0]}
           </p>
         </div>
@@ -50,18 +50,18 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({ onOpenMenu, onOpenSe
       <div className="flex items-center gap-2">
         <button
           onClick={toggleDarkMode}
-          className="p-2 rounded-full bg-white/5 text-slate-300 hover:text-white"
+          className="p-2 rounded-full bg-[var(--surface-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border)] transition"
         >
-          {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-blue-400" />}
+          {isDarkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-blue-600" />}
         </button>
 
         <button
           onClick={() => setIsNotificationOpen(true)}
-          className="relative p-2 rounded-full bg-white/5 text-slate-300 hover:text-white"
+          className="relative p-2 rounded-full bg-[var(--surface-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border)] transition"
         >
-          <Bell className="w-4 h-4 text-cyan-400" />
+          <Bell className="w-4 h-4 text-blue-500 dark:text-cyan-400" />
           {unreadCount > 0 && (
-            <span className="absolute 0 top-0 right-0 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-[#07111F]" />
+            <span className="absolute 0 top-0 right-0 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-[var(--surface)]" />
           )}
         </button>
       </div>

@@ -82,21 +82,23 @@ export const CalendarPage: React.FC = () => {
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight">Moliyaviy Taqvim va Eslatmalar</h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Moliyaviy Taqvim va Eslatmalar</h2>
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">
             Kommunal toʻlovlar, kreditlar, obunalar va oylik daromadlar jadvali
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           {/* View mode buttons */}
-          <div className="flex items-center rounded-xl bg-baraka-card border border-white/10 p-0.5 text-xs font-semibold">
+          <div className="flex items-center rounded-xl bg-[var(--surface)] border border-[var(--border)] p-0.5 text-xs font-semibold">
             {(['month', 'week', 'day'] as const).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setViewMode(mode)}
                 className={`px-3 py-1.5 rounded-lg capitalize transition ${
-                  viewMode === mode ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                  viewMode === mode
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 {mode === 'month' ? 'Oylik' : mode === 'week' ? 'Haftalik' : 'Kunlik'}
@@ -115,10 +117,10 @@ export const CalendarPage: React.FC = () => {
       </div>
 
       {/* Calendar Controls & Month Header */}
-      <div className="p-4 rounded-2xl bg-baraka-card border border-white/10 shadow-lg flex items-center justify-between">
+      <div className="p-4 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-lg flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <CalendarIcon className="w-5 h-5 text-cyan-400" />
-          <h3 className="text-lg font-black text-white">
+          <CalendarIcon className="w-5 h-5 text-cyan-500" />
+          <h3 className="text-lg font-black text-[var(--text-primary)]">
             {monthNamesUz[month]} {year}
           </h3>
         </div>
@@ -126,19 +128,19 @@ export const CalendarPage: React.FC = () => {
         <div className="flex items-center gap-1.5">
           <button
             onClick={handlePrevMonth}
-            className="p-2 rounded-xl bg-slate-900 border border-white/10 text-slate-300 hover:text-white transition"
+            className="p-2 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={() => setCurrentDate(new Date(2026, 10, 22))}
-            className="px-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 text-xs font-semibold text-cyan-400"
+            className="px-3 py-1.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-xs font-semibold text-cyan-600 dark:text-cyan-400 hover:bg-[var(--surface-hover)]"
           >
             Bugun
           </button>
           <button
             onClick={handleNextMonth}
-            className="p-2 rounded-xl bg-slate-900 border border-white/10 text-slate-300 hover:text-white transition"
+            className="p-2 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -146,19 +148,19 @@ export const CalendarPage: React.FC = () => {
       </div>
 
       {/* Month Calendar Grid */}
-      <div className="rounded-2xl bg-baraka-card border border-white/10 shadow-lg overflow-hidden">
+      <div className="rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-lg overflow-hidden">
         {/* Days of week header */}
-        <div className="grid grid-cols-7 bg-slate-900/80 border-b border-white/10 text-center py-2.5 text-xs font-bold text-slate-400 uppercase">
+        <div className="grid grid-cols-7 bg-[var(--table-header)] border-b border-[var(--border)] text-center py-2.5 text-xs font-bold text-[var(--text-muted)] uppercase">
           {['Du', 'Se', 'Chor', 'Pay', 'Ju', 'Sha', 'Yak'].map((d) => (
             <div key={d}>{d}</div>
           ))}
         </div>
 
         {/* Days cells */}
-        <div className="grid grid-cols-7 divide-x divide-y divide-white/5 bg-slate-950/20">
+        <div className="grid grid-cols-7 divide-x divide-y divide-[var(--border)] bg-[var(--background)]">
           {/* Empty cells before 1st of month */}
           {Array.from({ length: firstDayIndex }).map((_, i) => (
-            <div key={`empty-${i}`} className="min-h-[105px] p-2 bg-slate-900/30 opacity-40" />
+            <div key={`empty-${i}`} className="min-h-[105px] p-2 bg-[var(--background-secondary)]/40 opacity-40" />
           ))}
 
           {/* Days of current month */}
@@ -170,23 +172,23 @@ export const CalendarPage: React.FC = () => {
             return (
               <div
                 key={`day-${dayNum}`}
-                className={`min-h-[105px] p-2 flex flex-col justify-between hover:bg-white/5 transition-colors relative ${
-                  isToday ? 'bg-cyan-950/20' : ''
+                className={`min-h-[105px] p-2 flex flex-col justify-between hover:bg-[var(--surface-hover)] transition-colors relative ${
+                  isToday ? 'bg-cyan-500/10' : ''
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                       isToday
-                        ? 'bg-cyan-500 text-slate-950 font-black'
-                        : 'text-slate-300'
+                        ? 'bg-cyan-500 text-white font-black'
+                        : 'text-[var(--text-secondary)]'
                     }`}
                   >
                     {dayNum}
                   </span>
 
                   {dayEvents.length > 0 && (
-                    <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                    <span className="w-2 h-2 rounded-full bg-cyan-500" />
                   )}
                 </div>
 
@@ -198,19 +200,19 @@ export const CalendarPage: React.FC = () => {
                       onClick={() => setSelectedEvent(ev)}
                       className={`px-1.5 py-0.5 rounded text-[10px] font-semibold truncate cursor-pointer transition ${
                         ev.isCompleted
-                          ? 'bg-slate-800 text-slate-400 line-through'
+                          ? 'bg-[var(--surface-elevated)] text-[var(--text-muted)] line-through'
                           : ev.type === 'payment'
-                          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                          ? 'bg-rose-500/10 text-rose-500 border border-rose-500/30'
                           : ev.type === 'subscription'
-                          ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                          : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                          ? 'bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/30'
+                          : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30'
                       }`}
                     >
                       {ev.title}
                     </div>
                   ))}
                   {dayEvents.length > 2 && (
-                    <span className="text-[9px] text-cyan-400 font-bold block">
+                    <span className="text-[9px] text-cyan-600 dark:text-cyan-400 font-bold block">
                       +{dayEvents.length - 2} ta yana
                     </span>
                   )}
@@ -222,33 +224,35 @@ export const CalendarPage: React.FC = () => {
       </div>
 
       {/* Upcoming Events List */}
-      <div className="p-6 rounded-2xl bg-baraka-card border border-white/10 shadow-lg space-y-4">
-        <h3 className="text-base font-bold text-white">Yaqin Kungi Reja va Eslatmalar</h3>
+      <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-lg space-y-4">
+        <h3 className="text-base font-bold text-[var(--text-primary)]">Yaqin Kungi Reja va Eslatmalar</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {calendarEvents.map((ev) => (
             <div
               key={ev.id}
               className={`p-3.5 rounded-xl border flex items-center justify-between transition ${
                 ev.isCompleted
-                  ? 'bg-white/5 border-white/5 opacity-60'
-                  : 'bg-slate-900/60 border-white/10 hover:border-cyan-500/30'
+                  ? 'bg-[var(--surface-elevated)] border-[var(--border)] opacity-60'
+                  : 'bg-[var(--input-background)] border-[var(--border)] hover:border-cyan-500/30'
               }`}
             >
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => toggleCalendarEventCompleted(ev.id)}
                   className={`p-1.5 rounded-lg transition ${
-                    ev.isCompleted ? 'text-emerald-400 bg-emerald-500/20' : 'text-slate-500 hover:text-white'
+                    ev.isCompleted
+                      ? 'text-emerald-500 bg-emerald-500/10'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                   }`}
                 >
                   <CheckCircle2 className="w-5 h-5" />
                 </button>
                 <div>
-                  <p className={`text-xs font-bold text-white ${ev.isCompleted ? 'line-through' : ''}`}>
+                  <p className={`text-xs font-bold text-[var(--text-primary)] ${ev.isCompleted ? 'line-through opacity-70' : ''}`}>
                     {ev.title}
                   </p>
-                  <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
-                    <Clock className="w-3 h-3 text-cyan-400" />
+                  <p className="text-[10px] text-[var(--text-muted)] flex items-center gap-1 mt-0.5">
+                    <Clock className="w-3 h-3 text-cyan-500" />
                     <span>{formatDate(ev.date)} {ev.time || ''}</span>
                   </p>
                 </div>
@@ -256,13 +260,13 @@ export const CalendarPage: React.FC = () => {
 
               <div className="flex items-center gap-2">
                 {ev.amount && (
-                  <span className="font-mono text-xs font-bold text-white">
+                  <span className="font-mono text-xs font-bold text-[var(--text-primary)]">
                     {formatCurrency(ev.amount, currency)}
                   </span>
                 )}
                 <button
                   onClick={() => deleteCalendarEvent(ev.id)}
-                  className="p-1 rounded-md text-slate-500 hover:text-rose-400"
+                  className="p-1 rounded-md text-[var(--text-muted)] hover:text-rose-500"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -275,45 +279,45 @@ export const CalendarPage: React.FC = () => {
       {/* Add Event Modal */}
       {isAddOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md bg-baraka-card rounded-2xl border border-white/10 p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <h3 className="text-base font-bold text-white">Yangi Taqvim Eslatmasi</h3>
-              <button onClick={() => setIsAddOpen(false)} className="text-slate-400 hover:text-white">
+          <div className="w-full max-w-md bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
+              <h3 className="text-base font-bold text-[var(--text-primary)]">Yangi Taqvim Eslatmasi</h3>
+              <button onClick={() => setIsAddOpen(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleAddSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Eslatma nomi</label>
+                <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">Eslatma nomi</label>
                 <input
                   type="text"
                   required
                   placeholder="Masalan: Gaz toʻlovi muddati, Maosh kuni"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-sm"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">Sana</label>
+                  <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">Sana</label>
                   <input
                     type="date"
                     required
                     value={eventDate}
                     onChange={(e) => setEventDate(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-sm"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">Turi</label>
+                  <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">Turi</label>
                   <select
                     value={eventType}
                     onChange={(e) => setEventType(e.target.value as any)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-sm"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm"
                   >
                     <option value="payment">Toʻlov eslatmasi</option>
                     <option value="subscription">Obuna yangilanishi</option>
@@ -324,7 +328,7 @@ export const CalendarPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">
+                <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">
                   Taxminiy summa (ixtiyoriy)
                 </label>
                 <input
@@ -332,15 +336,15 @@ export const CalendarPage: React.FC = () => {
                   placeholder="250 000"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-sm"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-white/10">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[var(--border)]">
                 <button
                   type="button"
                   onClick={() => setIsAddOpen(false)}
-                  className="px-4 py-2 rounded-xl text-slate-300 hover:bg-white/10 text-xs font-medium"
+                  className="px-4 py-2 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] text-xs font-medium border border-[var(--border)]"
                 >
                   Bekor qilish
                 </button>

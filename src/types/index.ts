@@ -1,4 +1,5 @@
 export type CurrencyCode = 'UZS' | 'USD' | 'EUR';
+export type AppLanguage = 'uz' | 'en';
 
 export type TransactionType = 'income' | 'expense' | 'transfer';
 
@@ -21,22 +22,51 @@ export type TransactionCategory =
 
 export type PaymentMethod = 'card' | 'cash' | 'transfer';
 
-export type CardType = 'uzcard' | 'humo' | 'visa' | 'mastercard';
+export type CardType = 'uzcard' | 'humo' | 'visa' | 'mastercard' | 'other';
 
 export type FamilyRole = 'parent_father' | 'parent_mother' | 'child' | 'other';
 
+export interface UserAccount {
+  id: string;
+  email: string;
+  passwordHash: string;
+  salt: string;
+  createdAt: number;
+}
+
+export interface UserProfile {
+  id: string;
+  fullName: string;
+  displayName: string;
+  email: string;
+  avatar?: string;
+  primaryCurrency: CurrencyCode;
+  language: AppLanguage;
+  createdAt: number;
+}
+
+export interface UserSession {
+  userId: string;
+  token: string;
+  loggedInAt: number;
+}
+
 export interface FamilyMember {
   id: string;
+  userId?: string;
   name: string;
   role: FamilyRole;
   roleTitle: string;
   avatar: string;
   color: string;
+  isOwner?: boolean;
 }
 
 export interface PaymentCard {
   id: string;
+  userId?: string;
   nickname: string;
+  bankName?: string;
   cardholderName: string;
   cardType: CardType;
   cardNumberMasked: string;
@@ -48,10 +78,12 @@ export interface PaymentCard {
   isLocked: boolean;
   onlinePayments: boolean;
   cashTransactions: boolean;
+  description?: string;
 }
 
 export interface Transaction {
   id: string;
+  userId?: string;
   title: string;
   amount: number;
   type: TransactionType;
@@ -72,6 +104,7 @@ export type UtilityCategory = 'electricity' | 'gas' | 'water' | 'internet' | 'mo
 
 export interface UtilityService {
   id: string;
+  userId?: string;
   name: string;
   category: UtilityCategory;
   providerName: string;
@@ -86,6 +119,7 @@ export interface UtilityService {
 
 export interface Budget {
   id: string;
+  userId?: string;
   category: TransactionCategory;
   month: string; // YYYY-MM
   limitAmount: number;
@@ -105,6 +139,7 @@ export interface GoalContribution {
 
 export interface FamilyGoal {
   id: string;
+  userId?: string;
   title: string;
   category: string;
   targetAmount: number;
@@ -118,6 +153,7 @@ export interface FamilyGoal {
 
 export interface Subscription {
   id: string;
+  userId?: string;
   name: string;
   provider: string;
   icon: string;
@@ -132,6 +168,7 @@ export interface Subscription {
 
 export interface CalendarEvent {
   id: string;
+  userId?: string;
   title: string;
   date: string; // YYYY-MM-DD
   time?: string;
@@ -144,6 +181,7 @@ export interface CalendarEvent {
 
 export interface AppNotification {
   id: string;
+  userId?: string;
   title: string;
   message: string;
   date: string;
@@ -156,8 +194,8 @@ export interface FamilySettings {
   id: string;
   familyName: string;
   primaryCurrency: CurrencyCode;
-  currencyRateUSD: number; // e.g. 12800 UZS = 1 USD
-  currencyRateEUR: number; // e.g. 13600 UZS = 1 EUR
+  currencyRateUSD: number;
+  currencyRateEUR: number;
   onboardingCompleted: boolean;
   monthlySavingsTarget: number;
   createdDate: string;

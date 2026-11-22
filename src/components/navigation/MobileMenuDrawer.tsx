@@ -98,14 +98,14 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({ isOpen, onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full bg-[#07111F] border-t border-white/10 rounded-t-3xl max-h-[85vh] flex flex-col shadow-2xl p-5 animate-in slide-in-from-bottom duration-300">
+    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="w-full bg-[var(--surface)] text-[var(--text-primary)] border-t border-[var(--border)] rounded-t-3xl max-h-[85vh] flex flex-col shadow-2xl p-5 animate-in slide-in-from-bottom duration-300">
         {/* Drawer Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+        <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
           <Logo variant="full" size="sm" withTagline={false} />
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full bg-white/5 text-slate-300 hover:text-white"
+            className="p-1.5 rounded-full bg-[var(--surface-hover)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border)] transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -120,42 +120,44 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({ isOpen, onCl
               <button
                 key={cat.id}
                 onClick={() => handleSelect(cat.id)}
-                className={`w-full flex items-center justify-between p-3 rounded-2xl transition text-left ${
+                className={`w-full flex items-center justify-between p-3 rounded-2xl transition text-left border ${
                   isActive
-                    ? 'bg-blue-600/30 border border-blue-500/50 text-white'
-                    : 'bg-white/5 border border-white/5 text-slate-300 hover:bg-white/10'
+                    ? 'bg-blue-600/10 dark:bg-blue-600/20 border-blue-500 text-blue-600 dark:text-cyan-400 font-semibold'
+                    : 'bg-[var(--surface-hover)] border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-elevated)]'
                 }`}
               >
                 <div className="flex items-center gap-3.5">
                   <div
                     className={`p-2 rounded-xl ${
-                      isActive ? 'bg-blue-600 text-white' : 'bg-slate-800 text-cyan-400'
+                      isActive
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-blue-50 dark:bg-cyan-950/50 text-blue-600 dark:text-cyan-400 border border-blue-200 dark:border-cyan-500/20'
                     }`}
                   >
                     <Icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-white leading-tight">{cat.name}</p>
-                    <p className="text-xs text-slate-400 leading-tight mt-0.5">{cat.desc}</p>
+                    <p className="text-sm font-bold text-[var(--text-primary)] leading-tight">{cat.name}</p>
+                    <p className="text-xs text-[var(--text-muted)] leading-tight mt-0.5">{cat.desc}</p>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-400" />
+                <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
               </button>
             );
           })}
         </div>
 
         {/* Bottom Drawer Actions */}
-        <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+        <div className="pt-3 border-t border-[var(--border)] flex items-center justify-between">
           <button
             onClick={toggleDarkMode}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 text-xs text-slate-300"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[var(--surface-hover)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border)] transition"
           >
-            {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-blue-400" />}
+            {isDarkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-blue-600" />}
             <span>Rejimni oʻzgartirish</span>
           </button>
 
-          <span className="text-xs font-mono text-cyan-400">
+          <span className="text-xs font-mono font-bold text-blue-600 dark:text-cyan-400">
             {settings?.familyName || 'Rahimovlar Oilasi'}
           </span>
         </div>

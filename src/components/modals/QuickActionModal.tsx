@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useFinanceStore } from '../../store/useFinanceStore';
 import { CATEGORY_DETAILS } from '../../utils/formatters';
-import { TransactionCategory } from '../../types';
-import { X, PlusCircle, ArrowDownRight, ArrowUpRight, Check } from 'lucide-react';
+import { TransactionCategory, UtilityCategory } from '../../types';
+import { X, PlusCircle, ArrowDownRight, ArrowUpRight, Check, Zap } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export const QuickActionModal: React.FC = () => {
@@ -13,9 +13,9 @@ export const QuickActionModal: React.FC = () => {
     addTransaction,
     addCard,
     addGoal,
+    addService,
     members,
     cards,
-    selectedMonth,
   } = useFinanceStore();
 
   const [title, setTitle] = useState('');
@@ -37,6 +37,13 @@ export const QuickActionModal: React.FC = () => {
   const [goalTarget, setGoalTarget] = useState('');
   const [goalDeadline, setGoalDeadline] = useState('2027-12-31');
 
+  // Service specific fields
+  const [serviceName, setServiceName] = useState('');
+  const [providerName, setProviderName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [serviceCategory, setServiceCategory] = useState<UtilityCategory>('electricity');
+  const [serviceDueDate, setServiceDueDate] = useState('2026-11-28');
+
   if (!isQuickActionOpen || !quickActionType) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,7 +61,7 @@ export const QuickActionModal: React.FC = () => {
         category,
         date: today,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        memberId: memberId || members[0]?.id,
+        memberId: memberId || members[0]?.id || 'mem_1',
         cardId: paymentMethod === 'card' ? cardId || cards[0]?.id : undefined,
         paymentMethod,
         description,
@@ -66,14 +73,14 @@ export const QuickActionModal: React.FC = () => {
       const lastFour = cardNumber.slice(-4) || '1234';
       await addCard({
         nickname: cardNickname || 'Yangi Karta',
-        cardholderName: (cardholder || 'BARAKA USER').toUpperCase(),
+        cardholderName: (cardholder || 'BARAKA FOYDALANUVCHISI').toUpperCase(),
         cardType,
         cardNumberMasked: `${cardNumber.slice(0, 4) || '9860'} •••• •••• ${lastFour}`,
         lastFour,
         expiryDate: '12/28',
         balance: parseFloat(amount) || 0,
         colorGradient: cardGradient,
-        isDefault: false,
+        isDefault: cards.length === 0,
         isLocked: false,
         onlinePayments: true,
         cashTransactions: true,
@@ -94,28 +101,44 @@ export const QuickActionModal: React.FC = () => {
       });
       confetti({ particleCount: 50, spread: 70 });
       closeQuickAction();
+    } else if (quickActionType === 'service') {
+      const dueNum = parseFloat(amount.replace(/\s/g, '')) || 0;
+      await addService({
+        name: serviceName || 'Kommunal Xizmat',
+        category: serviceCategory,
+        providerName: providerName || 'Davlat Xizmati',
+        accountNumber: accountNumber || '10001234',
+        amountDue: dueNum,
+        dueDate: serviceDueDate,
+        status: 'unpaid',
+        icon: 'Zap',
+      });
+      confetti({ particleCount: 50, spread: 70 });
+      closeQuickAction();
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-2xl bg-baraka-card border border-white/10 p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between pb-4 border-b border-white/10">
+      <div className="relative w-full max-w-lg rounded-2xl bg-[var(--surface)] text-[var(--text-primary)] border border-[var(--border)] p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between pb-4 border-b border-[var(--border)]">
           <div className="flex items-center gap-2">
-            {quickActionType === 'income' && <ArrowDownRight className="w-5 h-5 text-emerald-400" />}
-            {quickActionType === 'expense' && <ArrowUpRight className="w-5 h-5 text-rose-400" />}
-            {quickActionType === 'card' && <PlusCircle className="w-5 h-5 text-cyan-400" />}
-            {quickActionType === 'goal' && <PlusCircle className="w-5 h-5 text-purple-400" />}
-            <h2 className="text-lg font-bold text-slate-100">
+            {quickActionType === 'income' && <ArrowDownRight className="w-5 h-5 text-emerald-500" />}
+            {quickActionType === 'expense' && <ArrowUpRight className="w-5 h-5 text-rose-500" />}
+            {quickActionType === 'card' && <PlusCircle className="w-5 h-5 text-blue-500 dark:text-cyan-400" />}
+            {quickActionType === 'goal' && <PlusCircle className="w-5 h-5 text-purple-500" />}
+            {quickActionType === 'service' && <Zap className="w-5 h-5 text-amber-500" />}
+            <h2 className="text-lg font-bold text-[var(--text-primary)]">
               {quickActionType === 'income' && 'Yangi Kirim Qoʻshish'}
               {quickActionType === 'expense' && 'Yangi Chiqim Qoʻshish'}
               {quickActionType === 'card' && 'Yangi Bank Kartasi Qoʻshish'}
               {quickActionType === 'goal' && 'Yangi Jamgʻarma Maqsadi'}
+              {quickActionType === 'service' && 'Yangi Kommunal Xizmat Ulash'}
             </h2>
           </div>
           <button
             onClick={closeQuickAction}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"
+            className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -125,7 +148,7 @@ export const QuickActionModal: React.FC = () => {
           {(quickActionType === 'income' || quickActionType === 'expense') && (
             <>
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">
+                <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                   Amaliyot nomi / Tavsif
                 </label>
                 <input
@@ -134,13 +157,13 @@ export const QuickActionModal: React.FC = () => {
                   placeholder={quickActionType === 'income' ? 'Masalan: Oylik maosh, Bonus' : 'Masalan: Korzinka xaridi, Benzin'}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/60 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 text-sm"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-blue-500 text-sm transition"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">
+                  <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                     Miqdor (soʻm)
                   </label>
                   <input
@@ -149,21 +172,21 @@ export const QuickActionModal: React.FC = () => {
                     placeholder="0"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/60 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 text-sm font-semibold"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-blue-500 text-sm font-semibold transition"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">
+                  <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                     Kategoriya
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value as TransactionCategory)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-400"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm focus:outline-none focus:border-blue-500 transition cursor-pointer"
                   >
                     {Object.entries(CATEGORY_DETAILS).map(([key, item]) => (
-                      <option key={key} value={key} className="bg-slate-900 text-white">
+                      <option key={key} value={key} className="bg-[var(--surface)] text-[var(--text-primary)]">
                         {item.labelUz}
                       </option>
                     ))}
@@ -173,16 +196,16 @@ export const QuickActionModal: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">
+                  <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                     Oila aʼzosi
                   </label>
                   <select
                     value={memberId}
                     onChange={(e) => setMemberId(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-400"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm focus:outline-none focus:border-blue-500 transition cursor-pointer"
                   >
                     {members.map((m) => (
-                      <option key={m.id} value={m.id} className="bg-slate-900 text-white">
+                      <option key={m.id} value={m.id} className="bg-[var(--surface)] text-[var(--text-primary)]">
                         {m.name} ({m.roleTitle})
                       </option>
                     ))}
@@ -190,33 +213,33 @@ export const QuickActionModal: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">
+                  <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                     Toʻlov usuli
                   </label>
                   <select
                     value={paymentMethod}
                     onChange={(e) => setPaymentMethod(e.target.value as any)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-400"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm focus:outline-none focus:border-blue-500 transition cursor-pointer"
                   >
-                    <option value="card" className="bg-slate-900 text-white">Bank Kartasi</option>
-                    <option value="cash" className="bg-slate-900 text-white">Naqd pul</option>
-                    <option value="transfer" className="bg-slate-900 text-white">Oʻtkazma</option>
+                    <option value="card" className="bg-[var(--surface)] text-[var(--text-primary)]">Bank Kartasi</option>
+                    <option value="cash" className="bg-[var(--surface)] text-[var(--text-primary)]">Naqd pul</option>
+                    <option value="transfer" className="bg-[var(--surface)] text-[var(--text-primary)]">Oʻtkazma</option>
                   </select>
                 </div>
               </div>
 
-              {paymentMethod === 'card' && (
+              {paymentMethod === 'card' && cards.length > 0 && (
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">
+                  <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                     Qaysi kartadan?
                   </label>
                   <select
                     value={cardId}
                     onChange={(e) => setCardId(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-400"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm focus:outline-none focus:border-blue-500 transition cursor-pointer"
                   >
                     {cards.map((c) => (
-                      <option key={c.id} value={c.id} className="bg-slate-900 text-white">
+                      <option key={c.id} value={c.id} className="bg-[var(--surface)] text-[var(--text-primary)]">
                         {c.nickname} ({c.cardNumberMasked})
                       </option>
                     ))}
@@ -225,7 +248,7 @@ export const QuickActionModal: React.FC = () => {
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">
+                <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                   Qoʻshimcha izoh (ixtiyoriy)
                 </label>
                 <textarea
@@ -233,7 +256,7 @@ export const QuickActionModal: React.FC = () => {
                   placeholder="Amaliyot haqida qisqacha maʼlumot..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900/60 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 text-sm"
+                  className="w-full px-3.5 py-2 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-blue-500 text-sm transition"
                 />
               </div>
             </>
@@ -242,7 +265,7 @@ export const QuickActionModal: React.FC = () => {
           {quickActionType === 'card' && (
             <>
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">
+                <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                   Karta nomi / Bank
                 </label>
                 <input
@@ -251,29 +274,29 @@ export const QuickActionModal: React.FC = () => {
                   placeholder="Masalan: Humo Aloqabank, Uzcard NBU"
                   value={cardNickname}
                   onChange={(e) => setCardNickname(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/60 border border-white/10 text-white text-sm"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-blue-500 text-sm transition"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">
+                  <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                     Karta turi
                   </label>
                   <select
                     value={cardType}
                     onChange={(e) => setCardType(e.target.value as any)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-sm"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm focus:outline-none focus:border-blue-500 transition cursor-pointer"
                   >
-                    <option value="humo">HUMO</option>
-                    <option value="uzcard">UZCARD</option>
-                    <option value="visa">VISA</option>
-                    <option value="mastercard">MASTERCARD</option>
+                    <option value="humo" className="bg-[var(--surface)] text-[var(--text-primary)]">HUMO</option>
+                    <option value="uzcard" className="bg-[var(--surface)] text-[var(--text-primary)]">UZCARD</option>
+                    <option value="visa" className="bg-[var(--surface)] text-[var(--text-primary)]">VISA</option>
+                    <option value="mastercard" className="bg-[var(--surface)] text-[var(--text-primary)]">MASTERCARD</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">
+                  <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                     Karta raqami (oxirgi 4 ta yoki toʻliq)
                   </label>
                   <input
@@ -282,14 +305,14 @@ export const QuickActionModal: React.FC = () => {
                     placeholder="9860 0000 0000 1234"
                     value={cardNumber}
                     onChange={(e) => setCardNumber(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/60 border border-white/10 text-white text-sm font-mono"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-blue-500 text-sm font-mono transition"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">
+                  <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                     Karta egasi ismi
                   </label>
                   <input
@@ -298,26 +321,26 @@ export const QuickActionModal: React.FC = () => {
                     placeholder="ALISHER RAKHIMOV"
                     value={cardholder}
                     onChange={(e) => setCardholder(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/60 border border-white/10 text-white text-sm"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-blue-500 text-sm transition"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">
+                  <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                     Boshlangʻich balans (soʻm)
                   </label>
                   <input
                     type="number"
-                    placeholder="5 000 000"
+                    placeholder="0"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/60 border border-white/10 text-white text-sm"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-blue-500 text-sm transition font-semibold"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">
+                <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                   Karta dizayni / Gradient
                 </label>
                 <div className="flex gap-2">
@@ -333,7 +356,7 @@ export const QuickActionModal: React.FC = () => {
                       type="button"
                       onClick={() => setCardGradient(g.id)}
                       className={`w-10 h-10 rounded-xl ${g.color} flex items-center justify-center transition-all ${
-                        cardGradient === g.id ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'
+                        cardGradient === g.id ? 'ring-2 ring-blue-500 dark:ring-white scale-110 shadow-md' : 'opacity-70 hover:opacity-100'
                       }`}
                     >
                       {cardGradient === g.id && <Check className="w-4 h-4 text-white" />}
@@ -344,10 +367,91 @@ export const QuickActionModal: React.FC = () => {
             </>
           )}
 
+          {quickActionType === 'service' && (
+            <>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">Xizmat nomi</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Masalan: Elektr energiyasi, Tabiiy Gaz, Uzonline"
+                  value={serviceName}
+                  onChange={(e) => setServiceName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-blue-500 text-sm transition"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">Toifa</label>
+                  <select
+                    value={serviceCategory}
+                    onChange={(e) => setServiceCategory(e.target.value as any)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm focus:outline-none focus:border-blue-500 transition cursor-pointer"
+                  >
+                    <option value="electricity" className="bg-[var(--surface)] text-[var(--text-primary)]">Elektr energiyasi</option>
+                    <option value="gas" className="bg-[var(--surface)] text-[var(--text-primary)]">Tabiiy Gaz</option>
+                    <option value="water" className="bg-[var(--surface)] text-[var(--text-primary)]">Suv taʼminoti</option>
+                    <option value="internet" className="bg-[var(--surface)] text-[var(--text-primary)]">Internet</option>
+                    <option value="mobile" className="bg-[var(--surface)] text-[var(--text-primary)]">Mobil aloqa</option>
+                    <option value="communal_other" className="bg-[var(--surface)] text-[var(--text-primary)]">Boshqa xizmatlar</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">Provayder</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Masalan: Hududiy Elektr Tarmoqlari"
+                    value={providerName}
+                    onChange={(e) => setProviderName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-blue-500 text-sm transition"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">Abonent raqami</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="100482931"
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-blue-500 text-sm font-mono transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">Kutilayotgan toʻlov (soʻm)</label>
+                  <input
+                    type="number"
+                    placeholder="150 000"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-blue-500 text-sm transition"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">Toʻlov muddati</label>
+                <input
+                  type="date"
+                  value={serviceDueDate}
+                  onChange={(e) => setServiceDueDate(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm focus:outline-none focus:border-blue-500 transition cursor-pointer"
+                />
+              </div>
+            </>
+          )}
+
           {quickActionType === 'goal' && (
             <>
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">
+                <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                   Maqsad nomi
                 </label>
                 <input
@@ -356,13 +460,13 @@ export const QuickActionModal: React.FC = () => {
                   placeholder="Masalan: Yangi Kottej, Avtomobil, Sayohat"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/60 border border-white/10 text-white text-sm"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-blue-500 text-sm transition"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">
+                  <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                     Kerakli summa (soʻm)
                   </label>
                   <input
@@ -371,12 +475,12 @@ export const QuickActionModal: React.FC = () => {
                     placeholder="100 000 000"
                     value={goalTarget}
                     onChange={(e) => setGoalTarget(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/60 border border-white/10 text-white text-sm font-semibold"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:border-blue-500 text-sm font-semibold transition"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">
+                  <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                     Tugash muddati
                   </label>
                   <input
@@ -384,18 +488,18 @@ export const QuickActionModal: React.FC = () => {
                     required
                     value={goalDeadline}
                     onChange={(e) => setGoalDeadline(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/60 border border-white/10 text-white text-sm"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm focus:outline-none focus:border-blue-500 transition cursor-pointer"
                   />
                 </div>
               </div>
             </>
           )}
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--border)]">
             <button
               type="button"
               onClick={closeQuickAction}
-              className="px-4 py-2.5 rounded-xl text-slate-300 hover:bg-white/10 text-sm font-medium transition"
+              className="px-4 py-2.5 rounded-xl text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] text-sm font-medium transition"
             >
               Bekor qilish
             </button>

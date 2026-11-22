@@ -114,7 +114,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
 
   return (
     <aside
-      className={`w-64 shrink-0 h-screen sticky top-0 flex flex-col justify-between p-4 bg-baraka-card border-r border-white/5 transition-colors duration-200 select-none ${className}`}
+      className={`w-64 shrink-0 h-screen sticky top-0 flex flex-col justify-between p-4 bg-[var(--sidebar-background)] border-r border-[var(--border)] transition-colors duration-200 select-none ${className}`}
     >
       <div>
         {/* Brand Logo */}
@@ -134,25 +134,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
                 className={`w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 group text-left ${
                   isActive
                     ? 'bg-blue-600 text-white font-semibold shadow-lg shadow-blue-600/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)]'
                 }`}
               >
                 <Icon
                   className={`w-5 h-5 shrink-0 transition-colors ${
-                    isActive ? 'text-white' : 'text-slate-400 group-hover:text-cyan-400'
+                    isActive ? 'text-white' : 'text-[var(--text-muted)] group-hover:text-blue-500 dark:group-hover:text-cyan-400'
                   }`}
                 />
                 <div className="flex-1 min-w-0">
                   <p className="truncate leading-snug">{item.labelUz}</p>
                   <p
                     className={`text-[10px] truncate ${
-                      isActive ? 'text-blue-100' : 'text-slate-500'
+                      isActive ? 'text-blue-100' : 'text-[var(--text-muted)]'
                     }`}
                   >
                     {item.desc}
                   </p>
                 </div>
-                {isActive && <ChevronRight className="w-4 h-4 text-white/80 shrink-0" />}
+                {isActive && <ChevronRight className="w-4 h-4 text-white/90 shrink-0" />}
               </button>
             );
           })}
@@ -160,27 +160,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
       </div>
 
       {/* Bottom Profile and Theme controls */}
-      <div className="pt-4 border-t border-white/10 space-y-3">
+      <div className="pt-4 border-t border-[var(--border)] space-y-3">
         {/* Theme & Currency Controls */}
         <div className="flex items-center justify-between px-2">
           <button
             onClick={toggleDarkMode}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-slate-300 font-medium transition"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--surface-hover)] hover:bg-[var(--surface-elevated)] border border-[var(--border)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-medium transition"
           >
             {isDarkMode ? (
               <>
-                <Sun className="w-4 h-4 text-amber-400" />
+                <Sun className="w-4 h-4 text-amber-500" />
                 <span>Yorugʻ rejim</span>
               </>
             ) : (
               <>
-                <Moon className="w-4 h-4 text-blue-400" />
+                <Moon className="w-4 h-4 text-blue-600" />
                 <span>Tungi rejim</span>
               </>
             )}
           </button>
 
-          <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/50 px-2 py-0.5 rounded border border-cyan-500/20">
+          <span className="text-[11px] font-mono font-bold text-blue-600 dark:text-cyan-400 bg-blue-50 dark:bg-cyan-950/50 px-2 py-0.5 rounded border border-blue-200 dark:border-cyan-500/20">
             {settings?.primaryCurrency || 'UZS'}
           </span>
         </div>
@@ -188,16 +188,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
         {/* User Card */}
         <div
           onClick={() => setActiveTab('family')}
-          className="flex items-center gap-3 p-2.5 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer transition border border-white/5"
+          className="flex items-center gap-3 p-2.5 rounded-xl bg-[var(--surface-hover)] hover:bg-[var(--surface-elevated)] cursor-pointer transition border border-[var(--border)]"
         >
           <img
             src={primaryUser.avatar}
             alt={primaryUser.name}
-            className="w-9 h-9 rounded-full object-cover ring-2 ring-cyan-500/40"
+            className="w-9 h-9 rounded-full object-cover ring-2 ring-blue-500/50 dark:ring-cyan-500/40"
           />
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-white truncate">{primaryUser.name}</p>
-            <p className="text-[10px] text-slate-400 truncate">{settings?.familyName || 'Rahimovlar Oilasi'}</p>
+            <p className="text-xs font-bold text-[var(--text-primary)] truncate">{primaryUser.name}</p>
+            <p className="text-[10px] text-[var(--text-muted)] truncate">{settings?.familyName || 'Rahimovlar Oilasi'}</p>
           </div>
         </div>
       </div>

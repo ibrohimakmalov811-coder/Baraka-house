@@ -20,22 +20,27 @@ import { CalendarPage } from './pages/Calendar/CalendarPage';
 import { FamilyPage } from './pages/Family/FamilyPage';
 import { SubscriptionsPage } from './pages/Subscriptions/SubscriptionsPage';
 import { SettingsPage } from './pages/Settings/SettingsPage';
+import { AuthPage } from './pages/Auth/AuthPage';
 
 export function App() {
-  const { activeTab, loadAllData } = useFinanceStore();
-  const [isLoading, setIsLoading] = useState(true);
+  const { activeTab, currentUser, session, isAuthLoading, loadAllData } = useFinanceStore();
 
   useEffect(() => {
-    loadAllData().finally(() => setIsLoading(false));
+    loadAllData();
   }, [loadAllData]);
 
-  if (isLoading) {
+  if (isAuthLoading) {
     return (
-      <div className="min-h-screen bg-[#07111F] flex flex-col items-center justify-center text-white">
+      <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center text-[var(--text-primary)]">
         <div className="w-12 h-12 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin mb-4" />
-        <p className="font-bold tracking-widest text-sm text-cyan-300">BARAKA YUKLANMOQDA...</p>
+        <p className="font-bold tracking-widest text-sm text-cyan-500">BARAKA YUKLANMOQDA...</p>
       </div>
     );
+  }
+
+  // Mandatory Auth Check: Guest sees Register / Login screen
+  if (!session || !currentUser) {
+    return <AuthPage />;
   }
 
   const renderCurrentPage = () => {

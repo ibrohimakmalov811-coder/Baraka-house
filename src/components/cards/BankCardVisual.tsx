@@ -74,7 +74,7 @@ export const BankCardVisual: React.FC<BankCardVisualProps> = ({
       onClick={onClick}
       className={`relative rounded-2xl p-5 overflow-hidden shadow-xl transition-all duration-300 bg-gradient-to-tr ${getGradientClass(
         card.colorGradient
-      )} ${isSelected ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-[#07111F] scale-[1.02]' : 'hover:scale-[1.01]'} ${
+      )} ${isSelected ? 'ring-2 ring-blue-500 dark:ring-cyan-400 ring-offset-2 ring-offset-[var(--surface)] scale-[1.02]' : 'hover:scale-[1.01]'} ${
         card.isLocked ? 'grayscale-[0.7] opacity-80' : ''
       } ${compact ? 'min-w-[270px] h-[160px]' : 'w-full min-h-[195px]'} ${
         onClick ? 'cursor-pointer' : ''

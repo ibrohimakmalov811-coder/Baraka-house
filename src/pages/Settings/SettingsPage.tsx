@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useFinanceStore } from '../../store/useFinanceStore';
-import { db } from '../../database/db';
+import { storageService } from '../../services/storageService';
+import { UserAvatar } from '../../components/common/UserAvatar';
+import { AvatarUploadModal } from '../../components/modals/AvatarUploadModal';
 import {
   Download,
   Upload,
@@ -10,8 +12,12 @@ import {
   CheckCircle2,
   AlertTriangle,
   HardDrive,
-  Globe,
   Settings as SettingsIcon,
+  User,
+  LogOut,
+  Moon,
+  Sun,
+  ShieldAlert,
 } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
@@ -20,14 +26,21 @@ export const SettingsPage: React.FC = () => {
     updateSettings,
     resetToDemoData,
     clearAllData,
+    loadAllData,
     currency,
     setCurrency,
+    currentUser,
+    logout,
+    isDarkMode,
+    toggleDarkMode,
   } = useFinanceStore();
 
   const [familyName, setFamilyName] = useState(settings?.familyName || 'Rahimovlar Oilasi');
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveSettings = async (e: React.FormEvent) => {
@@ -41,54 +54,15 @@ export const SettingsPage: React.FC = () => {
   };
 
   // Full Database Backup Export as JSON
-  const handleExportJSON = async () => {
-    const [
-      transactions,
-      cards,
-      services,
-      budgets,
-      goals,
-      subscriptions,
-      calendarEvents,
-      notifications,
-      members,
-      settingsArray,
-    ] = await Promise.all([
-      db.transactions.toArray(),
-      db.cards.toArray(),
-      db.services.toArray(),
-      db.budgets.toArray(),
-      db.goals.toArray(),
-      db.subscriptions.toArray(),
-      db.calendarEvents.toArray(),
-      db.notifications.toArray(),
-      db.members.toArray(),
-      db.settings.toArray(),
-    ]);
-
-    const backupData = {
-      version: 1,
-      appName: 'BARAKA FinTech',
-      exportedAt: new Date().toISOString(),
-      data: {
-        transactions,
-        cards,
-        services,
-        budgets,
-        goals,
-        subscriptions,
-        calendarEvents,
-        notifications,
-        members,
-        settings: settingsArray[0],
-      },
-    };
+  const handleExportJSON = () => {
+    const userId = currentUser?.id || 'guest';
+    const backupData = storageService.exportUserData(userId);
 
     const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `BARAKA_Zaxira_Nusxa_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `BARAKA_Zaxira_${(currentUser?.fullName || currentUser?.displayName || 'Foydalanuvchi').replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -106,60 +80,15 @@ export const SettingsPage: React.FC = () => {
         const content = event.target?.result as string;
         const parsed = JSON.parse(content);
 
-        if (!parsed.data) {
+        const userId = currentUser?.id || 'guest';
+        const ok = storageService.importUserData(userId, parsed);
+        if (ok) {
+          await loadAllData();
+          setSuccessMsg("Zaxira nusxasi muvaffaqiyatli tiklandi!");
+          setTimeout(() => setSuccessMsg(null), 3500);
+        } else {
           alert("Noto'g'ri fayl formati!");
-          return;
         }
-
-        const { data } = parsed;
-
-        await db.transaction(
-          'rw',
-          [
-            db.transactions,
-            db.cards,
-            db.services,
-            db.budgets,
-            db.goals,
-            db.subscriptions,
-            db.calendarEvents,
-            db.notifications,
-            db.members,
-            db.settings,
-          ],
-          async () => {
-            if (data.transactions) {
-              await db.transactions.clear();
-              await db.transactions.bulkAdd(data.transactions);
-            }
-            if (data.cards) {
-              await db.cards.clear();
-              await db.cards.bulkAdd(data.cards);
-            }
-            if (data.services) {
-              await db.services.clear();
-              await db.services.bulkAdd(data.services);
-            }
-            if (data.budgets) {
-              await db.budgets.clear();
-              await db.budgets.bulkAdd(data.budgets);
-            }
-            if (data.goals) {
-              await db.goals.clear();
-              await db.goals.bulkAdd(data.goals);
-            }
-            if (data.subscriptions) {
-              await db.subscriptions.clear();
-              await db.subscriptions.bulkAdd(data.subscriptions);
-            }
-            if (data.members) {
-              await db.members.clear();
-              await db.members.bulkAdd(data.members);
-            }
-          }
-        );
-
-        window.location.reload();
       } catch (err) {
         alert("Zaxira nusxasini tiklashda xatolik yuz berdi!");
       }
@@ -167,34 +96,120 @@ export const SettingsPage: React.FC = () => {
     reader.readAsText(file);
   };
 
+  const handleDeleteAccount = () => {
+    if (!currentUser) return;
+    storageService.deleteUserAccount(currentUser.id);
+    logout();
+  };
+
   return (
     <div className="space-y-6 max-w-4xl animate-in fade-in duration-300">
       {/* Top Banner */}
       <div>
-        <h2 className="text-xl font-bold text-white tracking-tight">Tizim Sozlamalari va Maʼlumotlar Xavfsizligi</h2>
-        <p className="text-xs text-slate-400 mt-0.5">
-          Oila sozlamalari, valyuta parametrlari va toʻliq zaxira nusxalarini boshqarish
+        <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Tizim Sozlamalari va Maʼlumotlar Xavfsizligi</h2>
+        <p className="text-xs text-[var(--text-muted)] mt-0.5">
+          Oila sozlamalari, shaxsiy hisob, vizual rejim va zaxira nusxalarini boshqarish
         </p>
       </div>
 
       {successMsg && (
-        <div className="p-3.5 rounded-xl bg-emerald-950/70 border border-emerald-500/40 text-emerald-200 text-xs flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
+      {/* Account Info Card */}
+      {currentUser && (
+        <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-lg space-y-5">
+          <div className="flex items-center justify-between pb-3 border-b border-[var(--border)]">
+            <div className="flex items-center gap-2.5">
+              <User className="w-5 h-5 text-cyan-500" />
+              <h3 className="text-base font-bold text-[var(--text-primary)]">Foydalanuvchi Profili</h3>
+            </div>
+            <button
+              onClick={logout}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 text-xs font-semibold border border-rose-500/20 transition"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Chiqish</span>
+            </button>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <UserAvatar
+                avatarUrl={currentUser.avatar}
+                name={currentUser.fullName || currentUser.displayName}
+                size="lg"
+                showEditButton={true}
+              />
+              <div>
+                <h4 className="text-base font-bold text-[var(--text-primary)]">
+                  {currentUser.fullName || currentUser.displayName}
+                </h4>
+                <p className="text-xs text-[var(--text-muted)]">{currentUser.email}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-cyan-300 text-[10px] font-bold border border-blue-500/20">
+                    PBKDF2 Xavfsiz Shaxsiy Hisob
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsAvatarModalOpen(true)}
+              className="px-4 py-2 rounded-xl bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] text-[var(--text-secondary)] text-xs font-semibold border border-[var(--border)] transition self-start sm:self-auto"
+            >
+              Rasmni oʻzgartirish
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Theme & Display Mode */}
+      <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-lg space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            {isDarkMode ? <Moon className="w-5 h-5 text-cyan-400" /> : <Sun className="w-5 h-5 text-amber-500" />}
+            <div>
+              <h3 className="text-base font-bold text-[var(--text-primary)]">Vizual Mavzu (Theme)</h3>
+              <p className="text-xs text-[var(--text-muted)]">
+                Hozirgi faol rejim: <strong className="text-[var(--text-primary)]">{isDarkMode ? 'Qorongʻi (Dark Mode)' : 'Yorugʻ (Light Mode)'}</strong>
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={toggleDarkMode}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] text-[var(--text-primary)] border border-[var(--border)] text-xs font-bold transition"
+          >
+            {isDarkMode ? (
+              <>
+                <Sun className="w-4 h-4 text-amber-500" />
+                <span>Yorugʻ Rejimga oʻtish</span>
+              </>
+            ) : (
+              <>
+                <Moon className="w-4 h-4 text-blue-500" />
+                <span>Qorongʻi Rejimga oʻtish</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
       {/* Family Settings Form */}
-      <div className="p-6 rounded-2xl bg-baraka-card border border-white/10 shadow-lg space-y-4">
-        <div className="flex items-center gap-2.5 pb-3 border-b border-white/10">
-          <SettingsIcon className="w-5 h-5 text-cyan-400" />
-          <h3 className="text-base font-bold text-white">Oila Profili Sozlamalari</h3>
+      <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-lg space-y-4">
+        <div className="flex items-center gap-2.5 pb-3 border-b border-[var(--border)]">
+          <SettingsIcon className="w-5 h-5 text-cyan-500" />
+          <h3 className="text-base font-bold text-[var(--text-primary)]">Oila Profili Sozlamalari</h3>
         </div>
 
         <form onSubmit={handleSaveSettings} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">
+              <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">
                 Oila yoki Profil nomi
               </label>
               <input
@@ -202,18 +217,18 @@ export const SettingsPage: React.FC = () => {
                 required
                 value={familyName}
                 onChange={(e) => setFamilyName(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-sm"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">
+              <label className="block text-xs font-semibold text-[var(--text-muted)] mb-1">
                 Asosiy Valyuta
               </label>
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value as any)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-sm"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm"
               >
                 <option value="UZS">UZS — Oʻzbekiston soʻmi (soʻm)</option>
                 <option value="USD">USD — AQSH dollari ($)</option>
@@ -233,47 +248,47 @@ export const SettingsPage: React.FC = () => {
         </form>
       </div>
 
-      {/* Backup and Data Safety (IndexedDB) */}
-      <div className="p-6 rounded-2xl bg-baraka-card border border-white/10 shadow-lg space-y-5">
-        <div className="flex items-center gap-2.5 pb-3 border-b border-white/10">
-          <HardDrive className="w-5 h-5 text-cyan-400" />
+      {/* Backup and Data Safety */}
+      <div className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-lg space-y-5">
+        <div className="flex items-center gap-2.5 pb-3 border-b border-[var(--border)]">
+          <HardDrive className="w-5 h-5 text-cyan-500" />
           <div>
-            <h3 className="text-base font-bold text-white">Maʼlumotlar Xavfsizligi va Zaxira</h3>
-            <p className="text-xs text-slate-400">
-              Barcha moliyaviy maʼlumotlar xavfsiz tarzda brauzeringizning IndexedDB xotirasida saqlanadi.
+            <h3 className="text-base font-bold text-[var(--text-primary)]">Maʼlumotlar Xavfsizligi va Zaxira</h3>
+            <p className="text-xs text-[var(--text-muted)]">
+              Barcha moliyaviy maʼlumotlaringiz shaxsiy hisobingizga biriktirilgan holda lokal xotirada saqlanadi.
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Export JSON */}
-          <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-3 flex flex-col justify-between">
+          <div className="p-4 rounded-xl bg-[var(--input-background)] border border-[var(--border)] space-y-3 flex flex-col justify-between">
             <div>
-              <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                <Download className="w-4 h-4 text-cyan-400" />
+              <h4 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+                <Download className="w-4 h-4 text-cyan-500" />
                 <span>Toʻliq Zaxirani Yuklab Olish (JSON)</span>
               </h4>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                Barcha amaliyotlar, kartalar, kommunal toʻlovlar va byudjetlarni bitta fayl koʻrinishida saqlang.
+              <p className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">
+                Barcha amaliyotlar, kartalar, kommunal toʻlovlar va byudjetlarni shaxsiy JSON fayl koʻrinishida saqlang.
               </p>
             </div>
             <button
               onClick={handleExportJSON}
-              className="w-full py-2.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition"
+              className="w-full py-2.5 rounded-xl bg-cyan-600/10 hover:bg-cyan-600/20 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30 text-xs font-bold transition"
             >
               Faylni Eksport Qilish
             </button>
           </div>
 
           {/* Import JSON */}
-          <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-3 flex flex-col justify-between">
+          <div className="p-4 rounded-xl bg-[var(--input-background)] border border-[var(--border)] space-y-3 flex flex-col justify-between">
             <div>
-              <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                <Upload className="w-4 h-4 text-purple-400" />
+              <h4 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+                <Upload className="w-4 h-4 text-purple-500" />
                 <span>Zaxiradan Qayta Tiklash (JSON)</span>
               </h4>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                Avval saqlab olingan JSON fayli orqali barcha maʼlumotlarni qayta tiklang.
+              <p className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">
+                Avval saqlab olingan JSON fayli orqali barcha shaxsiy maʼlumotlarni qayta tiklang.
               </p>
             </div>
             <input
@@ -285,7 +300,7 @@ export const SettingsPage: React.FC = () => {
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-full py-2.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 text-xs font-bold transition"
+              className="w-full py-2.5 rounded-xl bg-purple-600/10 hover:bg-purple-600/20 text-purple-600 dark:text-purple-300 border border-purple-500/30 text-xs font-bold transition"
             >
               Faylni Tanlash va Tiklash
             </button>
@@ -293,38 +308,50 @@ export const SettingsPage: React.FC = () => {
         </div>
 
         {/* Reset and Clear Actions */}
-        <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
+        <div className="pt-4 border-t border-[var(--border)] flex flex-wrap items-center justify-between gap-3">
           <button
             onClick={() => setShowResetConfirm(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold border border-white/10 transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] text-[var(--text-secondary)] text-xs font-semibold border border-[var(--border)] transition"
           >
-            <RefreshCw className="w-4 h-4 text-amber-400" />
-            <span>Namunaviy Demo Maʼlumotlarni Qayta Yuklash</span>
+            <RefreshCw className="w-4 h-4 text-amber-500" />
+            <span>Namunaviy Demo Maʼlumotlarni Yuklash</span>
           </button>
 
           <button
             onClick={() => setShowClearConfirm(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-600/10 hover:bg-rose-600/20 text-rose-400 text-xs font-semibold border border-rose-500/20 transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 text-xs font-semibold border border-rose-500/20 transition"
           >
             <Trash2 className="w-4 h-4" />
             <span>Barcha Maʼlumotlarni Tozalash (0 dan boshlash)</span>
           </button>
         </div>
+
+        {/* Delete Account */}
+        {currentUser && (
+          <div className="pt-3 border-t border-[var(--border)] flex justify-end">
+            <button
+              onClick={() => setShowDeleteAccountConfirm(true)}
+              className="text-xs text-rose-500 hover:text-rose-600 font-medium underline underline-offset-4"
+            >
+              Shaxsiy hisobni butunlay oʻchirish
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Reset Confirmation Modal */}
       {showResetConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-sm bg-baraka-card rounded-2xl border border-white/10 p-6 shadow-2xl text-center space-y-4">
-            <RefreshCw className="w-10 h-10 text-amber-400 mx-auto" />
-            <h3 className="text-base font-bold text-white">Namunaviy maʼlumotlarni qaytarish</h3>
-            <p className="text-xs text-slate-400">
+          <div className="w-full max-w-sm bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6 shadow-2xl text-center space-y-4">
+            <RefreshCw className="w-10 h-10 text-amber-500 mx-auto" />
+            <h3 className="text-base font-bold text-[var(--text-primary)]">Namunaviy maʼlumotlarni qaytarish</h3>
+            <p className="text-xs text-[var(--text-muted)]">
               Ushbu amal barcha amaldagi maʼlumotlarni dastlabki oʻzbek oilasi demo koʻrinishiga qaytaradi.
             </p>
             <div className="flex justify-center gap-3 pt-2">
               <button
                 onClick={() => setShowResetConfirm(false)}
-                className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 text-xs font-semibold"
+                className="px-4 py-2 rounded-xl bg-[var(--surface-elevated)] text-[var(--text-secondary)] text-xs font-semibold hover:bg-[var(--surface-hover)] border border-[var(--border)]"
               >
                 Bekor qilish
               </button>
@@ -333,7 +360,7 @@ export const SettingsPage: React.FC = () => {
                   await resetToDemoData();
                   setShowResetConfirm(false);
                 }}
-                className="px-4 py-2 rounded-xl bg-amber-600 text-white text-xs font-semibold"
+                className="px-4 py-2 rounded-xl bg-amber-600 text-white text-xs font-semibold hover:bg-amber-500 shadow-md shadow-amber-600/20"
               >
                 Tasdiqlash
               </button>
@@ -345,16 +372,16 @@ export const SettingsPage: React.FC = () => {
       {/* Clear Confirmation Modal */}
       {showClearConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-sm bg-baraka-card rounded-2xl border border-white/10 p-6 shadow-2xl text-center space-y-4">
+          <div className="w-full max-w-sm bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6 shadow-2xl text-center space-y-4">
             <AlertTriangle className="w-10 h-10 text-rose-500 mx-auto" />
-            <h3 className="text-base font-bold text-white">Toʻliq tozalash</h3>
-            <p className="text-xs text-slate-400">
+            <h3 className="text-base font-bold text-[var(--text-primary)]">Toʻliq tozalash</h3>
+            <p className="text-xs text-[var(--text-muted)]">
               Barcha amaliyotlar, kartalar va maqsadlar butunlay oʻchiriladi. Ilovani noldan boshlaysiz.
             </p>
             <div className="flex justify-center gap-3 pt-2">
               <button
                 onClick={() => setShowClearConfirm(false)}
-                className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 text-xs font-semibold"
+                className="px-4 py-2 rounded-xl bg-[var(--surface-elevated)] text-[var(--text-secondary)] text-xs font-semibold hover:bg-[var(--surface-hover)] border border-[var(--border)]"
               >
                 Bekor qilish
               </button>
@@ -363,7 +390,7 @@ export const SettingsPage: React.FC = () => {
                   await clearAllData();
                   setShowClearConfirm(false);
                 }}
-                className="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-semibold"
+                className="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-semibold hover:bg-rose-500 shadow-md shadow-rose-600/20"
               >
                 Barchasini tozalash
               </button>
@@ -371,6 +398,41 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Account Modal */}
+      {showDeleteAccountConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-sm bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6 shadow-2xl text-center space-y-4">
+            <ShieldAlert className="w-10 h-10 text-rose-500 mx-auto" />
+            <h3 className="text-base font-bold text-[var(--text-primary)]">Hisobni oʻchirish</h3>
+            <p className="text-xs text-[var(--text-muted)]">
+              Haqiqatan ham hisobingizni va barcha bogʻliq maʼlumotlarni oʻchirmoqchimisiz? Ushbu amalni qaytarib boʻlmaydi.
+            </p>
+            <div className="flex justify-center gap-3 pt-2">
+              <button
+                onClick={() => setShowDeleteAccountConfirm(false)}
+                className="px-4 py-2 rounded-xl bg-[var(--surface-elevated)] text-[var(--text-secondary)] text-xs font-semibold hover:bg-[var(--surface-hover)] border border-[var(--border)]"
+              >
+                Bekor qilish
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                className="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-semibold hover:bg-rose-500 shadow-md shadow-rose-600/20"
+              >
+                Hisobni oʻchirish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Avatar Upload Modal */}
+      <AvatarUploadModal
+        isOpen={isAvatarModalOpen}
+        onClose={() => setIsAvatarModalOpen(false)}
+        currentAvatar={currentUser?.avatar}
+        userName={currentUser?.fullName || currentUser?.displayName || 'Foydalanuvchi'}
+      />
     </div>
   );
 };

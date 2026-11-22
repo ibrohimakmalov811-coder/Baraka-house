@@ -29,11 +29,11 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-baraka-card/80 backdrop-blur-md border-b border-white/5 transition-colors">
+    <header className="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-[var(--header-background)]/90 backdrop-blur-md border-b border-[var(--border)] transition-colors">
       {/* Title */}
       <div>
-        <h1 className="text-xl font-black text-white tracking-tight">{title}</h1>
-        {subtitle && <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>}
+        <h1 className="text-xl font-black text-[var(--text-primary)] tracking-tight">{title}</h1>
+        {subtitle && <p className="text-xs text-[var(--text-muted)] mt-0.5">{subtitle}</p>}
       </div>
 
       {/* Center & Right Controls */}
@@ -41,32 +41,32 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
         {/* Search trigger */}
         <button
           onClick={() => setIsSearchOpen(true)}
-          className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-white/10 text-slate-400 text-xs w-48 lg:w-64 transition"
+          className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-[var(--input-background)] hover:bg-[var(--surface-hover)] border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] text-xs w-48 lg:w-64 transition shadow-sm"
         >
-          <Search className="w-4 h-4 text-cyan-400 shrink-0" />
+          <Search className="w-4 h-4 text-blue-500 dark:text-cyan-400 shrink-0" />
           <span className="truncate">Qidiruv... (Ctrl+K)</span>
-          <kbd className="hidden lg:inline-block ml-auto text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-slate-300">
+          <kbd className="hidden lg:inline-block ml-auto text-[10px] bg-[var(--surface-hover)] border border-[var(--border)] px-1.5 py-0.5 rounded text-[var(--text-secondary)] font-mono">
             ⌘K
           </kbd>
         </button>
 
         {/* Month Selector */}
-        <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/60 border border-white/10 text-xs text-slate-200">
-          <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+        <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-xs text-[var(--text-secondary)] shadow-sm">
+          <Calendar className="w-3.5 h-3.5 text-blue-500 dark:text-cyan-400" />
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="bg-transparent text-white font-medium focus:outline-none cursor-pointer"
+            className="bg-transparent text-[var(--text-primary)] font-medium focus:outline-none cursor-pointer"
           >
-            <option value="2026-11" className="bg-slate-900 text-white">Noyabr 2026</option>
-            <option value="2026-10" className="bg-slate-900 text-white">Oktyabr 2026</option>
-            <option value="2026-09" className="bg-slate-900 text-white">Sentabr 2026</option>
-            <option value="" className="bg-slate-900 text-white">Barcha davr</option>
+            <option value="2026-11" className="bg-[var(--surface)] text-[var(--text-primary)]">Noyabr 2026</option>
+            <option value="2026-10" className="bg-[var(--surface)] text-[var(--text-primary)]">Oktyabr 2026</option>
+            <option value="2026-09" className="bg-[var(--surface)] text-[var(--text-primary)]">Sentabr 2026</option>
+            <option value="" className="bg-[var(--surface)] text-[var(--text-primary)]">Barcha davr</option>
           </select>
         </div>
 
         {/* Currency Switcher */}
-        <div className="flex items-center rounded-xl bg-slate-900/60 border border-white/10 p-0.5 text-xs font-semibold">
+        <div className="flex items-center rounded-xl bg-[var(--surface-hover)] border border-[var(--border)] p-0.5 text-xs font-semibold">
           {(['UZS', 'USD', 'EUR'] as const).map((curr) => (
             <button
               key={curr}
@@ -74,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
               className={`px-2.5 py-1.5 rounded-lg transition ${
                 currency === curr
                   ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
               {curr}
@@ -94,9 +94,9 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
         {/* Notifications */}
         <button
           onClick={() => setIsNotificationOpen(true)}
-          className="relative p-2 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-white/10 text-slate-300 transition"
+          className="relative p-2 rounded-xl bg-[var(--surface-hover)] hover:bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition shadow-sm"
         >
-          <Bell className="w-4 h-4 text-cyan-400" />
+          <Bell className="w-4 h-4 text-blue-500 dark:text-cyan-400" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center animate-pulse">
               {unreadCount}
