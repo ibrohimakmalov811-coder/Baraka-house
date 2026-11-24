@@ -62,25 +62,23 @@ export const OverviewPage: React.FC = () => {
 
   const selectedCard = cards.find((c) => c.id === selectedCardId) || cards[0];
 
-  // Dynamic bar chart data: uses actual transactions or zeros if brand new
-  const barChartData = [
-    { name: 'Yan', debit: 0, credit: 0 },
-    { name: 'Fev', debit: 0, credit: 0 },
-    { name: 'Mar', debit: 0, credit: 0 },
-    { name: 'Apr', debit: 0, credit: 0 },
-    { name: 'May', debit: 0, credit: 0 },
-    { name: 'Iyun', debit: 0, credit: 0 },
-    { name: 'Iyul', debit: 0, credit: 0 },
-    { name: 'Avg', debit: 0, credit: 0 },
-    { name: 'Sen', debit: 0, credit: 0 },
-    { name: 'Okt', debit: 0, credit: 0 },
-    {
-      name: 'Noy',
-      debit: Math.round(totalExpenses / 1000000 * 10) / 10,
-      credit: Math.round(totalIncome / 1000000 * 10) / 10,
-    },
-    { name: 'Dek', debit: 0, credit: 0 },
-  ];
+  // Dynamic bar chart data: uses actual transactions across the months of the year
+  const monthLabels = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
+  const barChartData = monthLabels.map((name, i) => {
+    const monthNum = String(i + 1).padStart(2, '0');
+    const monthKey = `2026-${monthNum}`;
+    const exp = transactions
+      .filter((t) => t.type === 'expense' && t.date.startsWith(monthKey))
+      .reduce((sum, t) => sum + t.amount, 0);
+    const inc = transactions
+      .filter((t) => t.type === 'income' && t.date.startsWith(monthKey))
+      .reduce((sum, t) => sum + t.amount, 0);
+    return {
+      name,
+      debit: Math.round((exp / 1000000) * 10) / 10,
+      credit: Math.round((inc / 1000000) * 10) / 10,
+    };
+  });
 
   // Usage statistics donut data
   const usagePieData = cards.length > 0

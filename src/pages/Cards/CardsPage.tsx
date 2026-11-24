@@ -25,6 +25,7 @@ export const CardsPage: React.FC = () => {
     deleteCard,
     openQuickAction,
     currency,
+    resetToDemoData,
   } = useFinanceStore();
 
   const [activeCardForControls, setActiveCardForControls] = useState<PaymentCard | null>(null);
@@ -43,22 +44,32 @@ export const CardsPage: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => openQuickAction('card')}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 transition active:scale-95 self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Yangi Karta Qoʻshish</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2.5">
+          {cards.length < 3 && (
+            <button
+              onClick={() => resetToDemoData()}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 font-bold text-xs border border-cyan-500/30 transition shadow-sm"
+            >
+              <span>+ Namunaviy 3 ta kartani biriktirish</span>
+            </button>
+          )}
+          <button
+            onClick={() => openQuickAction('card')}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 transition active:scale-95 self-start sm:self-auto"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Yangi Karta Qoʻshish</span>
+          </button>
+        </div>
       </div>
 
       {cards.length === 0 ? (
         <EmptyState
           icon={CreditCard}
           title="Birorta ham toʻlov kartasi qoʻshilmagan"
-          description="Raqamli hamyoningizga Uzcard, Humo, Visa yoki Mastercard kartalaringizni kiriting."
-          actionText="Birinchi Kartani Qoʻshish"
-          onAction={() => openQuickAction('card')}
+          description="Akmalovlar oilasi kartalarini (Humo, Uzcard, Visa) biriktirib hisoblarni toʻgʻrilang."
+          actionText="Namunaviy Kartalarni Biriktirish (Humo, Uzcard, Visa)"
+          onAction={() => resetToDemoData()}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

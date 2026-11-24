@@ -171,7 +171,7 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({ isOpen, onCl
           </button>
 
           <span className="text-xs font-mono font-bold text-blue-600 dark:text-cyan-400 truncate max-w-[100px]">
-            {settings?.familyName || 'Rahimovlar Oilasi'}
+            {settings?.familyName || 'Akmalovlar Oilasi'}
           </span>
         </div>
       </div>

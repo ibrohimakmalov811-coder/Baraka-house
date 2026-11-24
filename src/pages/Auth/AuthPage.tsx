@@ -152,6 +152,24 @@ export const AuthPage: React.FC = () => {
             </div>
           )}
 
+          {/* Quick Demo Pill for Login */}
+          {mode === 'login' && (
+            <div className="flex justify-center -mt-2 mb-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('jasur@baraka.uz');
+                  setPassword('baraka2026');
+                  setErrorMsg(null);
+                }}
+                className="px-3 py-1 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-[11px] font-medium text-cyan-600 dark:text-cyan-400 transition flex items-center gap-1.5"
+              >
+                <span>💡 Akmalovlar oilasi (Demo):</span>
+                <strong className="underline">jasur@baraka.uz</strong>
+              </button>
+            </div>
+          )}
+
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'register' && (
@@ -190,7 +208,7 @@ export const AuthPage: React.FC = () => {
                     <input
                       type="text"
                       required
-                      placeholder="Alisher Rahimov"
+                      placeholder="Akmalov Jasur"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm placeholder-[var(--input-placeholder)] focus:outline-none focus:border-blue-500 transition"
@@ -210,7 +228,7 @@ export const AuthPage: React.FC = () => {
                 <input
                   type="email"
                   required
-                  placeholder="alisher@baraka.uz"
+                  placeholder="jasur@baraka.uz"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm placeholder-[var(--input-placeholder)] focus:outline-none focus:border-blue-500 transition"

@@ -25,14 +25,14 @@ export const CalendarPage: React.FC = () => {
     currency,
   } = useFinanceStore();
 
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 10, 22)); // November 2026
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 9, 20)); // October 2026
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
 
   // Form states
   const [title, setTitle] = useState('');
-  const [eventDate, setEventDate] = useState('2026-11-25');
+  const [eventDate, setEventDate] = useState('2026-10-25');
   const [eventType, setEventType] = useState<'payment' | 'subscription' | 'income' | 'milestone'>('payment');
   const [amount, setAmount] = useState('');
 

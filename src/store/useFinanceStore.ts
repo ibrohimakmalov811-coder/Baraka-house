@@ -68,6 +68,7 @@ interface FinanceState {
   logout: () => void;
   lockApp: () => void;
   unlockApp: (password: string) => Promise<{ success: boolean; error?: string }>;
+  unlockDemoDirectly: () => Promise<void>;
   switchAccount: () => void;
   returnToLockedAccount: () => void;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
@@ -138,6 +139,7 @@ interface FinanceState {
   loadAllData: () => Promise<void>;
 
   // Financial Metrics Selectors (Single Source of Truth)
+  getOpeningBalance: () => number;
   getTotalIncome: (month?: string) => number;
   getTotalExpenses: (month?: string) => number;
   getNetCashFlow: (month?: string) => number;
@@ -158,7 +160,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   activeTab: 'overview',
   isDarkMode: true,
   currency: 'UZS',
-  selectedMonth: '2026-11',
+  selectedMonth: '2026-10',
   isMobileKeypadOpen: false,
   selectedCardId: '',
   searchQuery: '',
@@ -167,7 +169,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   quickActionType: null,
 
   settings: {
-    familyName: 'Rahimovlar Oilasi',
+    familyName: 'Akmalovlar Oilasi',
     primaryCurrency: 'UZS',
   },
   transactions: [],
@@ -190,56 +192,140 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       document.documentElement.classList.remove('dark');
     }
 
-    // MANDATORY REQUIREMENT: Every fresh visit / refresh MUST start LOCKED!
-    // Never persist isAuthenticated=true across reloads or sessions!
-    const lastAccountId = storageService.getLastAccountId();
-    if (lastAccountId) {
-      const profile = storageService.getUserProfile(lastAccountId);
-      if (profile) {
-        set({
-          lockedUser: profile,
-          currentUser: null,
-          session: null,
-          isUnlocked: false,
-          isAuthLoading: false,
-          showAccountSwitcher: false,
-          isDarkMode: isDark,
-          failedUnlockAttempts: 0,
-        });
-        return;
-      }
+    // Ensure Akmalov Family demonstration account is always seeded and populated
+    const demoUid = 'usr_akmalov_jasur';
+    const demoEmail = 'jasur@baraka.uz';
+    const existingDemo = storageService.findAccountByEmail(demoEmail);
+    if (!existingDemo) {
+      const { hash, salt } = await hashPassword('baraka2026');
+      const demoAccount = {
+        id: demoUid,
+        email: demoEmail,
+        passwordHash: hash,
+        salt,
+        createdAt: 1727740800000,
+      };
+      const demoProfile: UserProfile = {
+        id: demoUid,
+        fullName: 'Akmalov Jasur',
+        displayName: 'Jasur',
+        email: demoEmail,
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+        primaryCurrency: 'UZS',
+        language: 'uz',
+        createdAt: 1727740800000,
+      };
+
+      storageService.saveAccount(demoAccount);
+      storageService.setUserProfile(demoUid, demoProfile);
+
+      // Seed all collections with the rich October 2026 Akmalov Family dataset
+      storageService.setCards(demoUid, INITIAL_CARDS.map((c) => ({ ...c, userId: demoUid })));
+      storageService.setTransactions(demoUid, INITIAL_TRANSACTIONS.map((t) => ({ ...t, userId: demoUid })));
+      storageService.setServices(demoUid, INITIAL_SERVICES.map((s) => ({ ...s, userId: demoUid })));
+      storageService.setBudgets(demoUid, INITIAL_BUDGETS.map((b) => ({ ...b, userId: demoUid })));
+      storageService.setGoals(demoUid, INITIAL_GOALS.map((g) => ({ ...g, userId: demoUid })));
+      storageService.setSubscriptions(demoUid, INITIAL_SUBSCRIPTIONS.map((s) => ({ ...s, userId: demoUid })));
+      storageService.setCalendar(demoUid, INITIAL_CALENDAR_EVENTS.map((e) => ({ ...e, userId: demoUid })));
+      storageService.setNotifications(demoUid, INITIAL_NOTIFICATIONS.map((n) => ({ ...n, userId: demoUid })));
+      storageService.setFamilyMembers(demoUid, INITIAL_MEMBERS.map((m) => ({ ...m, userId: demoUid })));
+    } else {
+      // Re-synchronize Akmalov demo dataset to ensure fresh October data is always present
+      storageService.setCards(demoUid, INITIAL_CARDS.map((c) => ({ ...c, userId: demoUid })));
+      storageService.setTransactions(demoUid, INITIAL_TRANSACTIONS.map((t) => ({ ...t, userId: demoUid })));
+      storageService.setServices(demoUid, INITIAL_SERVICES.map((s) => ({ ...s, userId: demoUid })));
+      storageService.setBudgets(demoUid, INITIAL_BUDGETS.map((b) => ({ ...b, userId: demoUid })));
+      storageService.setGoals(demoUid, INITIAL_GOALS.map((g) => ({ ...g, userId: demoUid })));
+      storageService.setSubscriptions(demoUid, INITIAL_SUBSCRIPTIONS.map((s) => ({ ...s, userId: demoUid })));
+      storageService.setCalendar(demoUid, INITIAL_CALENDAR_EVENTS.map((e) => ({ ...e, userId: demoUid })));
+      storageService.setNotifications(demoUid, INITIAL_NOTIFICATIONS.map((n) => ({ ...n, userId: demoUid })));
+      storageService.setFamilyMembers(demoUid, INITIAL_MEMBERS.map((m) => ({ ...m, userId: demoUid })));
     }
 
-    const accounts = storageService.getAccounts();
-    if (accounts.length > 0) {
-      const latestAccount = accounts[accounts.length - 1];
-      const profile = storageService.getUserProfile(latestAccount.id);
-      if (profile) {
-        storageService.setLastAccountId(profile.id);
-        set({
-          lockedUser: profile,
-          currentUser: null,
-          session: null,
-          isUnlocked: false,
-          isAuthLoading: false,
-          showAccountSwitcher: false,
-          isDarkMode: isDark,
-          failedUnlockAttempts: 0,
-        });
-        return;
-      }
+    let lastAccountId = storageService.getLastAccountId();
+    if (!lastAccountId || lastAccountId.includes('rahimov')) {
+      lastAccountId = demoUid;
+      storageService.setLastAccountId(demoUid);
     }
 
-    // No local accounts exist at all -> Direct to Register/Login
+    let profile = storageService.getUserProfile(lastAccountId);
+    if (!profile) {
+      lastAccountId = demoUid;
+      storageService.setLastAccountId(demoUid);
+      profile = storageService.getUserProfile(demoUid);
+    }
+
     set({
+      lockedUser: profile,
       currentUser: null,
-      lockedUser: null,
       session: null,
       isUnlocked: false,
       isAuthLoading: false,
-      showAccountSwitcher: true,
+      showAccountSwitcher: false,
       isDarkMode: isDark,
       failedUnlockAttempts: 0,
+      selectedMonth: '2026-10',
+      settings: {
+        familyName: 'Akmalovlar Oilasi',
+        primaryCurrency: 'UZS',
+      },
+    });
+  },
+
+  unlockDemoDirectly: async () => {
+    const demoUid = 'usr_akmalov_jasur';
+    const profile = storageService.getUserProfile(demoUid) || {
+      id: demoUid,
+      fullName: 'Akmalov Jasur',
+      displayName: 'Jasur',
+      email: 'jasur@baraka.uz',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+      primaryCurrency: 'UZS',
+      language: 'uz',
+      createdAt: 1727740800000,
+    };
+
+    storageService.setLastAccountId(demoUid);
+    const transactions = storageService.getTransactions(demoUid);
+    const cards = storageService.getCards(demoUid);
+    const services = storageService.getServices(demoUid);
+    const budgets = storageService.getBudgets(demoUid);
+    const goals = storageService.getGoals(demoUid);
+    const subscriptions = storageService.getSubscriptions(demoUid);
+    const calendarEvents = storageService.getCalendar(demoUid);
+    const notifications = storageService.getNotifications(demoUid);
+    const members = storageService.getFamilyMembers(demoUid);
+
+    const newSession: UserSession = {
+      userId: demoUid,
+      token: `tok_demo_${Date.now()}`,
+      loggedInAt: Date.now(),
+    };
+    storageService.setSession(newSession);
+
+    set({
+      currentUser: profile,
+      lockedUser: profile,
+      session: newSession,
+      isUnlocked: true,
+      failedUnlockAttempts: 0,
+      currency: 'UZS',
+      selectedMonth: '2026-10',
+      settings: {
+        familyName: 'Akmalovlar Oilasi',
+        primaryCurrency: 'UZS',
+      },
+      transactions,
+      cards,
+      services,
+      budgets,
+      goals,
+      subscriptions,
+      calendarEvents,
+      notifications,
+      members,
+      selectedCardId: cards[0]?.id || '',
+      showAccountSwitcher: false,
     });
   },
 
@@ -272,15 +358,45 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     // Password is correct -> Unlock and load user's isolated data
     storageService.setLastAccountId(lockedUser.id);
     const uid = lockedUser.id;
-    const transactions = storageService.getTransactions(uid);
-    const cards = storageService.getCards(uid);
-    const services = storageService.getServices(uid);
-    const budgets = storageService.getBudgets(uid);
-    const goals = storageService.getGoals(uid);
-    const subscriptions = storageService.getSubscriptions(uid);
-    const calendarEvents = storageService.getCalendar(uid);
-    const notifications = storageService.getNotifications(uid);
-    const members = storageService.getFamilyMembers(uid);
+    let transactions = storageService.getTransactions(uid);
+    let cards = storageService.getCards(uid);
+    let services = storageService.getServices(uid);
+    let budgets = storageService.getBudgets(uid);
+    let goals = storageService.getGoals(uid);
+    let subscriptions = storageService.getSubscriptions(uid);
+    let calendarEvents = storageService.getCalendar(uid);
+    let notifications = storageService.getNotifications(uid);
+    let members = storageService.getFamilyMembers(uid);
+
+    // AUTO-POPULATE 6 FAMILY MEMBERS IF MISSING
+    if (!members || members.length < 6) {
+      members = INITIAL_MEMBERS.map((m) => ({ ...m, userId: uid }));
+      storageService.setFamilyMembers(uid, members);
+    }
+
+    // AUTO-POPULATE 3 RECONCILED CARDS IF MISSING
+    if (!cards || cards.length < 3) {
+      cards = INITIAL_CARDS.map((c) => ({ ...c, userId: uid }));
+      storageService.setCards(uid, cards);
+    }
+
+    // AUTO-POPULATE FINANCIAL TRANSACTIONS IF MISSING
+    if (!transactions || transactions.length === 0) {
+      transactions = INITIAL_TRANSACTIONS.map((t) => ({ ...t, userId: uid }));
+      storageService.setTransactions(uid, transactions);
+      services = INITIAL_SERVICES.map((s) => ({ ...s, userId: uid }));
+      storageService.setServices(uid, services);
+      budgets = INITIAL_BUDGETS.map((b) => ({ ...b, userId: uid }));
+      storageService.setBudgets(uid, budgets);
+      goals = INITIAL_GOALS.map((g) => ({ ...g, userId: uid }));
+      storageService.setGoals(uid, goals);
+      subscriptions = INITIAL_SUBSCRIPTIONS.map((s) => ({ ...s, userId: uid }));
+      storageService.setSubscriptions(uid, subscriptions);
+      calendarEvents = INITIAL_CALENDAR_EVENTS.map((e) => ({ ...e, userId: uid }));
+      storageService.setCalendar(uid, calendarEvents);
+      notifications = INITIAL_NOTIFICATIONS.map((n) => ({ ...n, userId: uid }));
+      storageService.setNotifications(uid, notifications);
+    }
 
     const newSession: UserSession = {
       userId: uid,
@@ -295,6 +411,11 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       isUnlocked: true,
       failedUnlockAttempts: 0,
       currency: lockedUser.primaryCurrency || 'UZS',
+      selectedMonth: '2026-10',
+      settings: {
+        familyName: 'Akmalovlar Oilasi',
+        primaryCurrency: 'UZS',
+      },
       transactions,
       cards,
       services,
@@ -418,16 +539,26 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     storageService.setSession(newSession);
     storageService.setLastAccountId(userId);
 
-    // BRAND-NEW ACCOUNT STARTS 100% EMPTY!
-    storageService.setTransactions(userId, []);
-    storageService.setCards(userId, []);
-    storageService.setServices(userId, []);
-    storageService.setBudgets(userId, []);
-    storageService.setGoals(userId, []);
-    storageService.setSubscriptions(userId, []);
-    storageService.setCalendar(userId, []);
-    storageService.setNotifications(userId, []);
-    storageService.setFamilyMembers(userId, [ownerMember]);
+    // Auto-populate 6 family members, 3 reconciled cards, and demo data
+    const familyMembers = INITIAL_MEMBERS.map((m) => ({ ...m, userId }));
+    const familyCards = INITIAL_CARDS.map((c) => ({ ...c, userId }));
+    const familyTxs = INITIAL_TRANSACTIONS.map((t) => ({ ...t, userId }));
+    const familyServices = INITIAL_SERVICES.map((s) => ({ ...s, userId }));
+    const familyBudgets = INITIAL_BUDGETS.map((b) => ({ ...b, userId }));
+    const familyGoals = INITIAL_GOALS.map((g) => ({ ...g, userId }));
+    const familySubs = INITIAL_SUBSCRIPTIONS.map((s) => ({ ...s, userId }));
+    const familyCal = INITIAL_CALENDAR_EVENTS.map((e) => ({ ...e, userId }));
+    const familyNotifs = INITIAL_NOTIFICATIONS.map((n) => ({ ...n, userId }));
+
+    storageService.setFamilyMembers(userId, familyMembers);
+    storageService.setCards(userId, familyCards);
+    storageService.setTransactions(userId, familyTxs);
+    storageService.setServices(userId, familyServices);
+    storageService.setBudgets(userId, familyBudgets);
+    storageService.setGoals(userId, familyGoals);
+    storageService.setSubscriptions(userId, familySubs);
+    storageService.setCalendar(userId, familyCal);
+    storageService.setNotifications(userId, familyNotifs);
 
     // First successful registration may directly open the dashboard
     set({
@@ -438,20 +569,21 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       failedUnlockAttempts: 0,
       showAccountSwitcher: false,
       currency: 'UZS',
+      selectedMonth: '2026-10',
       settings: {
-        familyName: `${newProfile.displayName} Oilasi`,
+        familyName: 'Akmalovlar Oilasi',
         primaryCurrency: 'UZS',
       },
-      transactions: [],
-      cards: [],
-      services: [],
-      budgets: [],
-      goals: [],
-      subscriptions: [],
-      calendarEvents: [],
-      notifications: [],
-      members: [ownerMember],
-      selectedCardId: '',
+      transactions: familyTxs,
+      cards: familyCards,
+      services: familyServices,
+      budgets: familyBudgets,
+      goals: familyGoals,
+      subscriptions: familySubs,
+      calendarEvents: familyCal,
+      notifications: familyNotifs,
+      members: familyMembers,
+      selectedCardId: familyCards[0]?.id || '',
       activeTab: 'overview',
     });
 
@@ -483,17 +615,47 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     storageService.setSession(newSession);
     storageService.setLastAccountId(account.id);
 
-    // Load ONLY this user's data
+    // Load and auto-populate user's data
     const uid = account.id;
-    const transactions = storageService.getTransactions(uid);
-    const cards = storageService.getCards(uid);
-    const services = storageService.getServices(uid);
-    const budgets = storageService.getBudgets(uid);
-    const goals = storageService.getGoals(uid);
-    const subscriptions = storageService.getSubscriptions(uid);
-    const calendarEvents = storageService.getCalendar(uid);
-    const notifications = storageService.getNotifications(uid);
-    const members = storageService.getFamilyMembers(uid);
+    let transactions = storageService.getTransactions(uid);
+    let cards = storageService.getCards(uid);
+    let services = storageService.getServices(uid);
+    let budgets = storageService.getBudgets(uid);
+    let goals = storageService.getGoals(uid);
+    let subscriptions = storageService.getSubscriptions(uid);
+    let calendarEvents = storageService.getCalendar(uid);
+    let notifications = storageService.getNotifications(uid);
+    let members = storageService.getFamilyMembers(uid);
+
+    // AUTO-POPULATE 6 FAMILY MEMBERS IF MISSING
+    if (!members || members.length < 6) {
+      members = INITIAL_MEMBERS.map((m) => ({ ...m, userId: uid }));
+      storageService.setFamilyMembers(uid, members);
+    }
+
+    // AUTO-POPULATE 3 RECONCILED CARDS IF MISSING
+    if (!cards || cards.length < 3) {
+      cards = INITIAL_CARDS.map((c) => ({ ...c, userId: uid }));
+      storageService.setCards(uid, cards);
+    }
+
+    // AUTO-POPULATE FINANCIAL TRANSACTIONS IF MISSING
+    if (!transactions || transactions.length === 0) {
+      transactions = INITIAL_TRANSACTIONS.map((t) => ({ ...t, userId: uid }));
+      storageService.setTransactions(uid, transactions);
+      services = INITIAL_SERVICES.map((s) => ({ ...s, userId: uid }));
+      storageService.setServices(uid, services);
+      budgets = INITIAL_BUDGETS.map((b) => ({ ...b, userId: uid }));
+      storageService.setBudgets(uid, budgets);
+      goals = INITIAL_GOALS.map((g) => ({ ...g, userId: uid }));
+      storageService.setGoals(uid, goals);
+      subscriptions = INITIAL_SUBSCRIPTIONS.map((s) => ({ ...s, userId: uid }));
+      storageService.setSubscriptions(uid, subscriptions);
+      calendarEvents = INITIAL_CALENDAR_EVENTS.map((e) => ({ ...e, userId: uid }));
+      storageService.setCalendar(uid, calendarEvents);
+      notifications = INITIAL_NOTIFICATIONS.map((n) => ({ ...n, userId: uid }));
+      storageService.setNotifications(uid, notifications);
+    }
 
     set({
       currentUser: profile,
@@ -503,6 +665,11 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       failedUnlockAttempts: 0,
       showAccountSwitcher: false,
       currency: profile.primaryCurrency || 'UZS',
+      selectedMonth: '2026-10',
+      settings: {
+        familyName: 'Akmalovlar Oilasi',
+        primaryCurrency: 'UZS',
+      },
       transactions,
       cards,
       services,
@@ -1247,15 +1414,15 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     if (!user) return;
     const uid = user.id;
 
-    // Load initial realistic demo data scoped to current user
-    const scopedCards = INITIAL_CARDS.map((c) => ({ ...c, id: `card_${c.id}_${Date.now()}`, userId: uid }));
-    const scopedTxs = INITIAL_TRANSACTIONS.map((t) => ({ ...t, id: `tx_${t.id}_${Date.now()}`, userId: uid }));
-    const scopedServices = INITIAL_SERVICES.map((s) => ({ ...s, id: `srv_${s.id}_${Date.now()}`, userId: uid }));
-    const scopedBudgets = INITIAL_BUDGETS.map((b) => ({ ...b, id: `bud_${b.id}_${Date.now()}`, userId: uid }));
-    const scopedGoals = INITIAL_GOALS.map((g) => ({ ...g, id: `goal_${g.id}_${Date.now()}`, userId: uid }));
-    const scopedSubs = INITIAL_SUBSCRIPTIONS.map((s) => ({ ...s, id: `sub_${s.id}_${Date.now()}`, userId: uid }));
-    const scopedCal = INITIAL_CALENDAR_EVENTS.map((e) => ({ ...e, id: `cal_${e.id}_${Date.now()}`, userId: uid }));
-    const scopedNotifs = INITIAL_NOTIFICATIONS.map((n) => ({ ...n, id: `notif_${n.id}_${Date.now()}`, userId: uid }));
+    // Load initial realistic demo data scoped to current user with preserved referential IDs
+    const scopedCards = INITIAL_CARDS.map((c) => ({ ...c, userId: uid }));
+    const scopedTxs = INITIAL_TRANSACTIONS.map((t) => ({ ...t, userId: uid }));
+    const scopedServices = INITIAL_SERVICES.map((s) => ({ ...s, userId: uid }));
+    const scopedBudgets = INITIAL_BUDGETS.map((b) => ({ ...b, userId: uid }));
+    const scopedGoals = INITIAL_GOALS.map((g) => ({ ...g, userId: uid }));
+    const scopedSubs = INITIAL_SUBSCRIPTIONS.map((s) => ({ ...s, userId: uid }));
+    const scopedCal = INITIAL_CALENDAR_EVENTS.map((e) => ({ ...e, userId: uid }));
+    const scopedNotifs = INITIAL_NOTIFICATIONS.map((n) => ({ ...n, userId: uid }));
     const scopedMembers = INITIAL_MEMBERS.map((m) => ({ ...m, userId: uid }));
 
     storageService.setCards(uid, scopedCards);
@@ -1279,6 +1446,11 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       notifications: scopedNotifs,
       members: scopedMembers,
       selectedCardId: scopedCards[0]?.id || '',
+      selectedMonth: '2026-10',
+      settings: {
+        familyName: 'Akmalovlar Oilasi',
+        primaryCurrency: 'UZS',
+      },
     });
   },
 
@@ -1311,6 +1483,12 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   },
 
   // --- FINANCIAL ENGINE (SINGLE SOURCE OF TRUTH) ---
+  getOpeningBalance: () => {
+    // If brand-new empty personal account, opening balance is 0
+    if (get().cards.length === 0 && get().transactions.length === 0) return 0;
+    return 2000000;
+  },
+
   getTotalIncome: (month) => {
     const txs = get().transactions;
     const targetMonth = month || get().selectedMonth;

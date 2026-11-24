@@ -148,6 +148,22 @@ export const LockScreen: React.FC = () => {
             </div>
           )}
 
+          {/* Quick Demo Pill if Jasur / Demo account */}
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                setPassword('baraka2026');
+                setErrorMsg(null);
+              }}
+              className="px-3 py-1 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-[11px] font-medium text-cyan-600 dark:text-cyan-400 transition flex items-center gap-1.5"
+            >
+              <span>💡 Demo paroli:</span>
+              <strong className="font-mono underline">baraka2026</strong>
+              <span className="opacity-75">(toʻldirish)</span>
+            </button>
+          </div>
+
           {/* Unlock Form */}
           <form onSubmit={handleUnlock} className="space-y-4">
             <div>

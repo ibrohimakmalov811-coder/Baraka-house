@@ -27,7 +27,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const primaryUser = members[0] || {
-    name: 'Alisher Rahimov',
+    name: 'Akmalov Jasur',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
   };
 

@@ -17,6 +17,7 @@ export const FamilyPage: React.FC = () => {
     deleteMember,
     currency,
     settings,
+    resetToDemoData,
   } = useFinanceStore();
 
   const [selectedMemberId, setSelectedMemberId] = useState<string>(members[0]?.id || '');
@@ -70,17 +71,27 @@ export const FamilyPage: React.FC = () => {
         <div>
           <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Oila Xonasi va Aʼzolar</h2>
           <p className="text-xs text-[var(--text-muted)] mt-0.5">
-            {settings?.familyName || 'Rahimovlar Oilasi'} — Oila aʼzolari faolligi va xarajatlari
+            {settings?.familyName || 'Akmalovlar Oilasi'} — Oila aʼzolari faolligi va xarajatlari
           </p>
         </div>
 
-        <button
-          onClick={() => setIsAddOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 transition active:scale-95"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Yangi Aʼzo Qoʻshish</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2.5">
+          {members.length < 6 && (
+            <button
+              onClick={() => resetToDemoData()}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 font-bold text-xs border border-cyan-500/30 transition shadow-sm"
+            >
+              <span>+ Akmalovlar oilasini toʻldirish (6 aʼzo)</span>
+            </button>
+          )}
+          <button
+            onClick={() => setIsAddOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 transition active:scale-95"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Yangi Aʼzo Qoʻshish</span>
+          </button>
+        </div>
       </div>
 
       {/* Members Horizontal Grid */}
@@ -238,7 +249,7 @@ export const FamilyPage: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="Masalan: Sardor Rahimov"
+                  placeholder="Masalan: Sardor Akmalov"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[var(--input-background)] border border-[var(--border)] text-[var(--input-text)] text-sm"

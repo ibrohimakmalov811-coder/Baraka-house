@@ -111,7 +111,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className = '' }) => {
   ];
 
   const primaryUser = members[0] || {
-    name: 'Alisher Rahimov',
+    name: 'Akmalov Jasur',
     roleTitle: 'Oila boshligʻi',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
   };

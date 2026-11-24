@@ -41,7 +41,7 @@ export const SettingsPage: React.FC = () => {
     toggleDarkMode,
   } = useFinanceStore();
 
-  const [familyName, setFamilyName] = useState(settings?.familyName || 'Rahimovlar Oilasi');
+  const [familyName, setFamilyName] = useState(settings?.familyName || 'Akmalovlar Oilasi');
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
