@@ -135,6 +135,9 @@ interface FinanceState {
   // Settings & Data Management
   updateSettings: (updates: Partial<{ familyName: string; primaryCurrency: CurrencyCode }>) => Promise<void>;
   resetToDemoData: () => Promise<void>;
+  populateOfficialServices: () => Promise<void>;
+  populateFamilyMembers: () => Promise<void>;
+  populateCards: () => Promise<void>;
   clearAllData: () => Promise<void>;
   loadAllData: () => Promise<void>;
 
@@ -1452,6 +1455,30 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
         primaryCurrency: 'UZS',
       },
     });
+  },
+
+  populateOfficialServices: async () => {
+    const user = get().currentUser || get().lockedUser;
+    const uid = user ? user.id : 'usr_akmalov_jasur';
+    const scopedServices = INITIAL_SERVICES.map((s) => ({ ...s, userId: uid }));
+    storageService.setServices(uid, scopedServices);
+    set({ services: scopedServices });
+  },
+
+  populateFamilyMembers: async () => {
+    const user = get().currentUser || get().lockedUser;
+    const uid = user ? user.id : 'usr_akmalov_jasur';
+    const scopedMembers = INITIAL_MEMBERS.map((m) => ({ ...m, userId: uid }));
+    storageService.setFamilyMembers(uid, scopedMembers);
+    set({ members: scopedMembers });
+  },
+
+  populateCards: async () => {
+    const user = get().currentUser || get().lockedUser;
+    const uid = user ? user.id : 'usr_akmalov_jasur';
+    const scopedCards = INITIAL_CARDS.map((c) => ({ ...c, userId: uid }));
+    storageService.setCards(uid, scopedCards);
+    set({ cards: scopedCards, selectedCardId: scopedCards[0]?.id || '' });
   },
 
   clearAllData: async () => {

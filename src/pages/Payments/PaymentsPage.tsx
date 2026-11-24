@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFinanceStore } from '../../store/useFinanceStore';
 import { UtilityService, UtilityCategory } from '../../types';
 import { formatCurrency, formatDate } from '../../utils/formatters';
@@ -17,15 +17,30 @@ import {
   Plus,
   Receipt,
   Search,
+  RefreshCw,
 } from 'lucide-react';
 
 export const PaymentsPage: React.FC = () => {
-  const { services, transactions, currency, openQuickAction, deleteService } = useFinanceStore();
+  const {
+    services,
+    transactions,
+    currency,
+    openQuickAction,
+    deleteService,
+    populateOfficialServices,
+  } = useFinanceStore();
 
   const [activeCategory, setActiveCategory] = useState<'all' | UtilityCategory>('all');
   const [selectedService, setSelectedService] = useState<UtilityService | null>(null);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [search, setSearch] = useState('');
+
+  // Auto-populate all 6 official utility services with exact account numbers if missing or has old test data
+  useEffect(() => {
+    if (services.length < 6 || services.some((s) => s.accountNumber === '23456789765434567')) {
+      populateOfficialServices();
+    }
+  }, [services.length, populateOfficialServices]);
 
   const categoryIcons: Record<UtilityCategory, React.ElementType> = {
     electricity: Zap,
@@ -71,7 +86,17 @@ export const PaymentsPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {services.length < 6 && (
+            <button
+              onClick={() => populateOfficialServices()}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 font-bold text-xs border border-cyan-500/30 transition shadow-sm"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Barcha hisoblarni tiklash (6 xizmat)</span>
+            </button>
+          )}
+
           <button
             onClick={() => openQuickAction('service')}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-xs shadow-md shadow-cyan-500/20 transition active:scale-95"
